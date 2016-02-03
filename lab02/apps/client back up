@@ -1,0 +1,32 @@
+client back up
+		if( *(bp + filePosition) == '\t') {
+
+			char sendBuffer[BUFFSIZE];
+			char *sp = sendBuffer;
+			char sendLen = 0;
+			while( len > sendLen ) {
+				char c = *(bp + filePosition);
+				if( c != 1 ) {
+					sendBuffer[sendLen] = c;
+					sendLen++;
+				}
+				*bp++;
+			}
+			(void) printf("SendBuffer: %s", sendBuffer);
+			(void) send(conn, sendBuffer, sendLen, 0);
+			filePosition += sendLen;
+		}
+
+
+		int x = 0;
+		for(x = 0; x < len; x++){
+			if( *(bp + x) == '\t' ) {
+				(void)printf("Tab \n"); 
+			} else if( *(bp + x) == '\n' ) {
+				(void)printf("New Line \n"); 
+			} else if( *(bp + x) == ' ' ) {
+				(void)printf("Space \n");
+			} else {
+				(void)printf("Char: %c \n", *(bp + x));
+			}
+		}
