@@ -56,21 +56,27 @@ int main(int argc, char *argv[]) {
 
 	//This time we want client to read and then server to output
 	while((len = readln(buff, BUFFSIZE)) > 0 ) {
-		(void) printf("len: %d\n", len);
+		//(void) printf("len: %d\n", len);
 		if( buff[0] == '\t'){
 			int sendLen;
 			char sendBuffer[BUFFSIZE];
+			uint32_t sendLength = htonl(len);
+
+			//(void) printf("sendLength: %d \n", sendLength);
+
+			send(conn, &sendLength, sizeof(uint32_t), 0);
+			
 			for(sendLen = 0; sendLen < len; sendLen++) {
 				//(void)printf("put letter %c into sendbuff \n", buff[sendLen]);
 				sendBuffer[sendLen] = buff[sendLen];
 			}
 			//(void) printf("Send this shit\n");
 			sendBuffer[sendLen + 1] = '\0'; 
-			(void) printf("Send Buffer: %s \n", sendBuffer);
+			//(void) printf("Send Buffer: %s \n", sendBuffer);
 			(void) send(conn, sendBuffer, sendLen, 0);
 			(void) fflush(stdout);
 		} else {
-			(void) printf("No tab found! Not paragraph Skipping\n");
+			//(void) printf("No tab found! Not paragraph Skipping\n");
 		}
 	}
 	send_eof(conn);

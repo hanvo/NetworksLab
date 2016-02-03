@@ -22,7 +22,7 @@ int main (int argc, char *argv[]) {
 	connection conn;
 	int len; 
 	char buff[BUFFSIZE];
-	int received, expected;
+	uint32_t expected, recieved;
 
 	if ( argc != 2 ) {
 		(void) fprintf(stderr, "usage: %s <appnum>\n", argv[0]);
@@ -30,19 +30,31 @@ int main (int argc, char *argv[]) {
 	}
 	
 	/* wait for a connection from a client */
-
 	conn = await_contact((appnum)atoi(argv[1]));
 
 	if ( conn < 0 ) {
 		exit(1);
 	}
 
-	while((len = recv(conn, buff, BUFFSIZE, 0)) > 0){
+	//Read first few bytes for length of paragraph
+	while( (len = recv(conn, &expected, sizeof(uint32_t), 0 ) > 0 )) {
 		(void) printf(RECEIVED_PROMPT);
-		(void) printf("%s", buff);
 		fflush(stdout);
-	}
 
+		expected = ntohl(expected);
+
+		for( recieved = 0; recieved < expected; ) {
+			len = recv(conn, buff, (expected - recieved) < BUFFSIZE ? 
+				(expected - recieved) : BUFFSIZE, 0);
+			if( len < 0 ) {
+				send_eof(conn);
+				return 1;
+			}
+			(void) write(STDOUT_FILENO, buff,len);
+			recieved += len;
+		}
+	}
+	
 	//program stops at EOF found on stdin
 	(void) send_eof(conn);
 	(void) printf("\n");
