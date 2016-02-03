@@ -26,7 +26,6 @@ int main(int argc, char *argv[]) {
 	connection conn;
 	char buff[BUFFSIZE];
 	uint32_t len;
-	char *bp = buff;
 
 	if( argc < 2 || argc > 3 ) {
 		(void) fprintf(stderr, "usage: %s <compname> [appnum]\n",
@@ -55,22 +54,32 @@ int main(int argc, char *argv[]) {
 	}
 
 	//This time we want client to read and then server to output
+	//
 	while((len = readln(buff, BUFFSIZE)) > 0 ) {
 		//(void) printf("len: %d\n", len);
+		//Check the beginning of each new perspective paragraph. 
+		//Paragraph must start with \t
 		if( buff[0] == '\t'){
+			//SendLen to ensure you are sending exactly the same amount
+			//you are sending
+			//SendBuffer = buffer used in send. Contains legal paragraphs
 			int sendLen;
 			char sendBuffer[BUFFSIZE];
+
+			//changing the length according to endians 
 			uint32_t sendLength = htonl(len);
 
 			//(void) printf("sendLength: %d \n", sendLength);
 
+			//sending the length of the file to the server for it to prep incoming
+			//messages
 			send(conn, &sendLength, sizeof(uint32_t), 0);
 			
+			//Copy characters into new sending buffer to be sent to server 
 			for(sendLen = 0; sendLen < len; sendLen++) {
 				//(void)printf("put letter %c into sendbuff \n", buff[sendLen]);
 				sendBuffer[sendLen] = buff[sendLen];
 			}
-			//(void) printf("Send this shit\n");
 			sendBuffer[sendLen + 1] = '\0'; 
 			//(void) printf("Send Buffer: %s \n", sendBuffer);
 			(void) send(conn, sendBuffer, sendLen, 0);

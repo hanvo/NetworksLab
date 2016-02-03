@@ -14,7 +14,7 @@ readln(char *buff, int buffsz)
 	char	*bp = buff, c;
 	int	n;
 
-
+	//Added logic at line 21 to check for an extra \n 
 	while(bp - buff < buffsz && (n = read(STDIN_FILENO, bp, 1)) > 0) {
 		if (*bp++ == '\n'){
 			if( read(STDIN_FILENO, bp, 1) > 0 ) {
