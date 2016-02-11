@@ -54,8 +54,6 @@ int main(int argc, char *argv[]) {
 
 	while( 1 ) {
 		int len;
-		uint32_t expected, recieved;
-
 		//Step 4 - Accepting 
 		struct sockaddr_in client;
 		int clientSize = sizeof( struct sockaddr_in );
@@ -83,14 +81,32 @@ int main(int argc, char *argv[]) {
 			strncpy(check, buff, 5);
 			if( strncmp(check, keyOpen, 5) == 0 ) {
 				printf("OPEN\n");
+				char fileBuffer[BUFF_SIZE];
+				int x;
+				int counter = 0; 
+				for( x = 5; buff[x] != '\n'; x++ ) {
+					fileBuffer[counter] = buff[x];
+					counter++;
+				}
+				fileBuffer[counter] = '\0';
+
+				int openFd = open(fileBuffer, O_RDONLY);
+				printf("OPENFB: %d\n", openFd);
+
 			} else if( strncmp(check, keyRead, 5) == 0  ) {
 				printf("READ\n");
 			} else if( strncmp(check, keyBack, 5) == 0  ) {
 				printf("Back\n");
 			} else if( strncmp(check, keyClos, 5) == 0  ) {
 				printf("clos\n");
-			}						
+			} else {
+				printf("No command.\n");
+			}
+			printf("Await new message \n");					
 		}
+
+
+
 		//Step 6 - Send	
 	} 
 

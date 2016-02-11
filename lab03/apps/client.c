@@ -63,22 +63,23 @@ int main(int argc, char *argv[]) {
 
 	while( 1 ) {
 		while( (len = readln(buff, BUFF_SIZE)) > 0 ) {
-			printf("len: %d\n", len);
 			//Step 4 - Send Message
 			int sendErr = send(sockfd, buff, len, 0);
 			if ( sendErr < 0 ) {
 				fprintf(stderr, "Send Error");
 				exit(1);
 			}
+			printf("len sent: %d\n", len + 1);
+
+
 			//Step 5 - Rec Message
+
+
 			(void) printf(CLIENT_PROMPT);
 			(void) fflush(stdout);
 		}
-
 	}
 	
-
-
 	//Step 6 - Close
 	//close( sockfd );
 }
