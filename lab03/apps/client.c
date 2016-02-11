@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <string.h> 
 
+#define CLIENT_PROMPT "C> "
+#define BUFF_SIZE 1028
+
+int readln(char *, int);
 
 int main(int argc, char *argv[]) {	
 	int sockfd;
@@ -50,11 +54,31 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	//Step 3 - Send Message
+	//Step 3 - Accept User Input 
+	char buff[BUFF_SIZE];
+	int len; 
 
-	//Step 4 - Rec Message
+	(void) printf(CLIENT_PROMPT);
+	(void) fflush(stdout);
 
-	//Step 5 - Close
+	while( 1 ) {
+		while( (len = readln(buff, BUFF_SIZE)) > 0 ) {
+			printf("len: %d\n", len);
+			//Step 4 - Send Message
+			int sendErr = send(sockfd, buff, len, 0);
+			if ( sendErr < 0 ) {
+				fprintf(stderr, "Send Error");
+				exit(1);
+			}
+			//Step 5 - Rec Message
+			(void) printf(CLIENT_PROMPT);
+			(void) fflush(stdout);
+		}
 
-	close( sockfd );
+	}
+	
+
+
+	//Step 6 - Close
+	//close( sockfd );
 }

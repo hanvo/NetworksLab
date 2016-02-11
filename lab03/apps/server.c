@@ -6,6 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> 
+#include <fcntl.h>
+
+
+#define SERVER_PROMPT "S> "
+
+#define BUFF_SIZE 1028
 
 int main(int argc, char *argv[]) {	
 	int sockfd, bindfd, clientSocketfd; 
@@ -24,6 +30,9 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
+	int optval = 1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval, sizeof( int ) );
+
 	//Step 2 - Bind to a socket
 	struct sockaddr_in serverIPAddress; 
  	memset( &serverIPAddress, 0, sizeof(serverIPAddress) );
@@ -32,7 +41,7 @@ int main(int argc, char *argv[]) {
 
 	bindfd = bind( sockfd, (struct sockaddr *) &serverIPAddress, sizeof(serverIPAddress) );
 	if( bindfd < 0 ) {
-		printf("Bind error");
+		printf("Bind error \n");
 		return -1;
 	}
 
@@ -43,22 +52,48 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	//Step 4 - Accepting 
 	while( 1 ) {
-		struct sockaddr_in client;
-		int clientSize = sizeof( client );
+		int len;
+		uint32_t expected, recieved;
 
-		int clientSocketfd = accept( sockfd, (struct sockaddr *) &client, (socklen_t *) &clientSize);
+		//Step 4 - Accepting 
+		struct sockaddr_in client;
+		int clientSize = sizeof( struct sockaddr_in );
+
+		clientSocketfd = accept( sockfd, (struct sockaddr *) &client, &clientSize);
 		if( clientSocketfd < 0 ) {
 			printf( "Client Socket Accept Failed" );
 			return -1;
+		} 
+	
+		//Step 5 - Recv 
+		char buff[BUFF_SIZE];
+		char keyOpen[5];
+		char keyRead[5];
+		char keyBack[5];
+		char keyClos[5];
+
+		char check[5];
+		strcpy(keyOpen, "OPEN ");
+		strcpy(keyRead, "READ ");
+		strcpy(keyBack, "BACK ");
+		strcpy(keyClos, "CLOS ");
+
+		while((len = recv(clientSocketfd, buff, BUFF_SIZE, 0) > 0)) {
+			strncpy(check, buff, 5);
+			if( strncmp(check, keyOpen, 5) == 0 ) {
+				printf("OPEN\n");
+			} else if( strncmp(check, keyRead, 5) == 0  ) {
+				printf("READ\n");
+			} else if( strncmp(check, keyBack, 5) == 0  ) {
+				printf("Back\n");
+			} else if( strncmp(check, keyClos, 5) == 0  ) {
+				printf("clos\n");
+			}						
 		}
+		//Step 6 - Send	
+	} 
 
-		//Step 5 - Recv / Send 
-		printf( " Work Performed here " );
-
-		//Step 6 - Close
-		close( clientSocketfd );
-	}
-
+	//Step 7 - Close
+	//close( clientSocketfd );
 }
