@@ -77,10 +77,13 @@ int main(int argc, char *argv[]) {
 		strcpy(keyBack, "BACK ");
 		strcpy(keyClos, "CLOS ");
 
+		int openFd;
+
 		while((len = recv(clientSocketfd, buff, BUFF_SIZE, 0) > 0)) {
 			strncpy(check, buff, 5);
 			if( strncmp(check, keyOpen, 5) == 0 ) {
-				printf("OPEN\n");
+				char serverReply[2];
+				int reply = 1;
 				char fileBuffer[BUFF_SIZE];
 				int x;
 				int counter = 0; 
@@ -90,8 +93,20 @@ int main(int argc, char *argv[]) {
 				}
 				fileBuffer[counter] = '\0';
 
-				int openFd = open(fileBuffer, O_RDONLY);
-				printf("OPENFB: %d\n", openFd);
+				//check if it has..
+				if( strstr(fileBuffer, "..") ) {
+					printf("CONTAINS ..\n");
+					reply = -1;
+				}
+
+				openFd = open(fileBuffer, O_RDWR);
+				if( openFd < 0 ) {
+					//does not exist file already open 
+					printf("Error opening\n");
+					reply = -1;
+				}
+				snprintf(serverReply, 3, "%d",reply);
+				
 
 			} else if( strncmp(check, keyRead, 5) == 0  ) {
 				printf("READ\n");
@@ -102,6 +117,7 @@ int main(int argc, char *argv[]) {
 			} else {
 				printf("No command.\n");
 			}
+			//close(openFd);
 			printf("Await new message \n");					
 		}
 
