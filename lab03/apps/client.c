@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
 			//Step 5 - Rec Message
 			int length = recv(sockfd, recvBuff, BUFF_SIZE, 0);
-			if( recvBuff[0] == '1' ) {
+			if( recvBuff[0] == '1' && recvBuff[1] == '\n' ) {
 				printf(SERVER_PROMPT);
 				printf("1 \n");
 			} else if ( recvBuff[0] == '-' ){

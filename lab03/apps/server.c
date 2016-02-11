@@ -77,6 +77,8 @@ int main(int argc, char *argv[]) {
 
 		int openFd;
 		int sizeOfFile = 0;
+		int currentlyOpenFileSize;
+		int fileSizeLeft;
 
 		while((len = recv(clientSocketfd, buff, BUFF_SIZE, 0) > 0)) {
 			strncpy(check, buff, 5);
@@ -107,7 +109,9 @@ int main(int argc, char *argv[]) {
 				}
 
 				sizeOfFile = lseek(openFd, 0, SEEK_END); //get file size
+				currentlyOpenFileSize = sizeOfFile;
 				lseek(openFd, 0, 0); //move pointer back to beginning
+				fileSizeLeft = sizeOfFile;
 
 				snprintf(serverReply, 3, "%d",reply);
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
@@ -126,7 +130,7 @@ int main(int argc, char *argv[]) {
 				readlen[counter] = '\0';
 				int length = atoi(readlen);
 
-				int fileSizeLeft = sizeOfFile - length;
+				fileSizeLeft = sizeOfFile - length;
 
 				int readErr;
 				if( fileSizeLeft > 0 ) {
@@ -154,6 +158,32 @@ int main(int argc, char *argv[]) {
 
 			} else if( strncmp(check, keyBack, 5) == 0  ) {
 				printf("Back\n");
+				char backlen[BUFF_SIZE];
+				int x;
+				int counter = 0;
+				for( x = 5; buff[x] != '\n'; x++ ) {
+					backlen[counter] = buff[x];
+					counter++;
+				}
+				backlen[counter] = '\0';
+				int length = atoi(backlen);
+
+				printf("Back length: %d\n", length);
+
+				printf("currentlyOpenFileSize: %d\n", currentlyOpenFileSize);
+				printf("fileSizeLeft: %d \n", fileSizeLeft);
+
+				if( (currentlyOpenFileSize == fileSizeLeft) || ((fileSizeLeft + length) > currentlyOpenFileSize) ) {
+					printf("CANT GO BACK NO MORE \n");
+					reply = -1;
+				} else {
+					int newPos = currentlyOpenFileSize - (fileSizeLeft + length);
+					printf("newPos: %d\n",newPos);
+					lseek(openFd, newPos, SEEK_SET);
+				}
+				snprintf(serverReply, 3, "%d",reply);
+				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
+
 			} else if( strncmp(check, keyClos, 4) == 0  ) {
 				printf("clos\n");
 				int err = close(openFd);
@@ -161,6 +191,8 @@ int main(int argc, char *argv[]) {
 					reply = -1;
 				}
 				snprintf(serverReply, 3, "%d",reply);
+				sizeOfFile = 0;
+				fileSizeLeft = -1;
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 			} else {
 				printf("No command.\n");
