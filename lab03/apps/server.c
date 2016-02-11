@@ -180,6 +180,8 @@ int main(int argc, char *argv[]) {
 					int newPos = currentlyOpenFileSize - (fileSizeLeft + length);
 					printf("newPos: %d\n",newPos);
 					lseek(openFd, newPos, SEEK_SET);
+					fileSizeLeft = fileSizeLeft + length;
+					sizeOfFile = fileSizeLeft;
 				}
 				snprintf(serverReply, 3, "%d",reply);
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
