@@ -79,9 +79,15 @@ int main(int argc, char *argv[]) {
 			if( recvBuff[0] == '1' ) {
 				printf(SERVER_PROMPT);
 				printf("1 \n");
-			} else {
+			} else if ( recvBuff[0] == '-' ){
 				printf(SERVER_PROMPT);
 				printf("-1 \n");
+			} else {
+				printf(SERVER_PROMPT);
+				fflush(stdout);
+				write(1, recvBuff, length);
+				printf("\n");
+				fflush(stdout);
 			}
 		
 

@@ -107,7 +107,6 @@ int main(int argc, char *argv[]) {
 				}
 
 				sizeOfFile = lseek(openFd, 0, SEEK_END); //get file size
-				printf("sizeOfFile: %d\n", sizeOfFile);
 				lseek(openFd, 0, 0); //move pointer back to beginning
 
 				snprintf(serverReply, 3, "%d",reply);
@@ -126,38 +125,36 @@ int main(int argc, char *argv[]) {
 				}
 				readlen[counter] = '\0';
 				int length = atoi(readlen);
-				printf("LENGTH OF FILE TO BE READ: %d\n", length);
 
 				int fileSizeLeft = sizeOfFile - length;
 
-
 				int readErr;
 				if( fileSizeLeft > 0 ) {
-					printf("Read Normally. Still within range\n");
 					readErr = read(openFd, fileRead, length);
 					sizeOfFile = fileSizeLeft;
 				} else {
 					fileSizeLeft = fileSizeLeft + length;
-					printf("Read whatever is left: %d\n", fileSizeLeft);
 					readErr = read(openFd, fileRead, fileSizeLeft);
 				}
-
-				printf("readErr: %d\n", readErr);
 
 				if( readErr <= 0 ) {
 					reply = -1;
 				} else {
 					fileRead[readErr] = '\0';
-					printf("fileRead results: %s\n", fileRead);
 					reply = readErr;
 				}
 
 				snprintf(serverReply, 3, "%d",reply);
-				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
+				strcpy(sendBuffer, serverReply);
+				strcat(sendBuffer, " ");
+				strcat(sendBuffer, fileRead);
+				strcat(sendBuffer, "\0");
+
+				int sendErr = send(clientSocketfd, sendBuffer,(int)strlen(sendBuffer), 0);
 
 			} else if( strncmp(check, keyBack, 5) == 0  ) {
 				printf("Back\n");
-			} else if( strncmp(check, keyClos, 5) == 0  ) {
+			} else if( strncmp(check, keyClos, 4) == 0  ) {
 				printf("clos\n");
 				int err = close(openFd);
 				if( err < 0 ) {
