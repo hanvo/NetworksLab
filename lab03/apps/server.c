@@ -8,7 +8,6 @@
 #include <string.h> 
 #include <fcntl.h>
 
-
 #define BUFF_SIZE 1028
 #define FILE_SIZE 100000
 
@@ -77,11 +76,13 @@ int main(int argc, char *argv[]) {
 		strcpy(keyClos, "CLOS ");
 
 		int openFd;
+		int sizeOfFile = 0;
 
 		while((len = recv(clientSocketfd, buff, BUFF_SIZE, 0) > 0)) {
 			strncpy(check, buff, 5);
 			int reply = 1;
 			char serverReply[2];
+
 			if( strncmp(check, keyOpen, 5) == 0 ) {
 				char fileBuffer[BUFF_SIZE];
 				int x;
@@ -92,7 +93,7 @@ int main(int argc, char *argv[]) {
 				}
 				fileBuffer[counter] = '\0';
 
-				//check if it has..
+				//check if file Name has..
 				if( strstr(fileBuffer, "..") ) {
 					printf("CONTAINS ..\n");
 					reply = -1;
@@ -104,6 +105,11 @@ int main(int argc, char *argv[]) {
 					printf("Error opening\n");
 					reply = -1;
 				}
+
+				sizeOfFile = lseek(openFd, 0, SEEK_END); //get file size
+				printf("sizeOfFile: %d\n", sizeOfFile);
+				lseek(openFd, 0, 0); //move pointer back to beginning
+
 				snprintf(serverReply, 3, "%d",reply);
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 
@@ -111,6 +117,7 @@ int main(int argc, char *argv[]) {
 				printf("READ\n");
 				char readlen[BUFF_SIZE];
 				char fileRead[FILE_SIZE];
+				char sendBuffer[BUFF_SIZE];
 				int x;
 				int counter = 0;
 				for( x = 5; buff[x] != '\n'; x++ ) {
@@ -121,20 +128,32 @@ int main(int argc, char *argv[]) {
 				int length = atoi(readlen);
 				printf("LENGTH OF FILE TO BE READ: %d\n", length);
 
-				int readErr = read(openFd, fileRead, length);
-				if( readErr < 0 ) {
+				int fileSizeLeft = sizeOfFile - length;
+
+
+				int readErr;
+				if( fileSizeLeft > 0 ) {
+					printf("Read Normally. Still within range\n");
+					readErr = read(openFd, fileRead, length);
+					sizeOfFile = fileSizeLeft;
+				} else {
+					fileSizeLeft = fileSizeLeft + length;
+					printf("Read whatever is left: %d\n", fileSizeLeft);
+					readErr = read(openFd, fileRead, fileSizeLeft);
+				}
+
+				printf("readErr: %d\n", readErr);
+
+				if( readErr <= 0 ) {
 					reply = -1;
 				} else {
-					fileRead[length] = '\0';
+					fileRead[readErr] = '\0';
 					printf("fileRead results: %s\n", fileRead);
 					reply = readErr;
 				}
 
-
-				reply = 1;
 				snprintf(serverReply, 3, "%d",reply);
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
-
 
 			} else if( strncmp(check, keyBack, 5) == 0  ) {
 				printf("Back\n");
