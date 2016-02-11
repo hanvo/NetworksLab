@@ -9,8 +9,6 @@
 #include <fcntl.h>
 
 
-#define SERVER_PROMPT "S> "
-
 #define BUFF_SIZE 1028
 
 int main(int argc, char *argv[]) {	
@@ -81,9 +79,9 @@ int main(int argc, char *argv[]) {
 
 		while((len = recv(clientSocketfd, buff, BUFF_SIZE, 0) > 0)) {
 			strncpy(check, buff, 5);
+			int reply = 1;
+			char serverReply[2];
 			if( strncmp(check, keyOpen, 5) == 0 ) {
-				char serverReply[2];
-				int reply = 1;
 				char fileBuffer[BUFF_SIZE];
 				int x;
 				int counter = 0; 
@@ -106,15 +104,7 @@ int main(int argc, char *argv[]) {
 					reply = -1;
 				}
 				snprintf(serverReply, 3, "%d",reply);
-
-				char sendBuff[10];
-				strcpy(sendBuff, SERVER_PROMPT);
-				strcat(sendBuff, serverReply);
-				strcat(sendBuff, "\n");
-
-				printf("%s",sendBuff);
-
-				int sendErr = send(clientSocketfd, sendBuff,(int)strlen(sendBuff), 0);
+				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 
 			} else if( strncmp(check, keyRead, 5) == 0  ) {
 				printf("READ\n");
@@ -122,10 +112,15 @@ int main(int argc, char *argv[]) {
 				printf("Back\n");
 			} else if( strncmp(check, keyClos, 5) == 0  ) {
 				printf("clos\n");
+				int err = close(openFd);
+				if( err < 0 ) {
+					reply = -1;
+				}
+				snprintf(serverReply, 3, "%d",reply);
+				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 			} else {
 				printf("No command.\n");
 			}
-			//close(openFd);
 			printf("Await new message \n");					
 		}
 

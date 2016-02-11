@@ -10,6 +10,8 @@
 #include <string.h> 
 
 #define CLIENT_PROMPT "C> "
+#define SERVER_PROMPT "S> "
+
 #define BUFF_SIZE 1028
 
 int readln(char *, int);
@@ -74,7 +76,13 @@ int main(int argc, char *argv[]) {
 
 			//Step 5 - Rec Message
 			int length = recv(sockfd, recvBuff, BUFF_SIZE, 0);
-			fprintf(stdout, "%s", recvBuff);
+			if( recvBuff[0] == '1' ) {
+				printf(SERVER_PROMPT);
+				printf("1 \n");
+			} else {
+				printf(SERVER_PROMPT);
+				printf("-1 \n");
+			}
 		
 
 			(void) printf(CLIENT_PROMPT);
