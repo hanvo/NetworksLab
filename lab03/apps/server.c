@@ -106,7 +106,15 @@ int main(int argc, char *argv[]) {
 					reply = -1;
 				}
 				snprintf(serverReply, 3, "%d",reply);
-				
+
+				char sendBuff[10];
+				strcpy(sendBuff, SERVER_PROMPT);
+				strcat(sendBuff, serverReply);
+				strcat(sendBuff, "\n");
+
+				printf("%s",sendBuff);
+
+				int sendErr = send(clientSocketfd, sendBuff,(int)strlen(sendBuff), 0);
 
 			} else if( strncmp(check, keyRead, 5) == 0  ) {
 				printf("READ\n");

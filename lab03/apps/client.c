@@ -63,17 +63,19 @@ int main(int argc, char *argv[]) {
 
 	while( 1 ) {
 		while( (len = readln(buff, BUFF_SIZE)) > 0 ) {
+			char recvBuff[4000];
+
 			//Step 4 - Send Message
 			int sendErr = send(sockfd, buff, len, 0);
 			if ( sendErr < 0 ) {
 				fprintf(stderr, "Send Error");
 				exit(1);
 			}
-			printf("len sent: %d\n", len + 1);
-
 
 			//Step 5 - Rec Message
-
+			int length = recv(sockfd, recvBuff, BUFF_SIZE, 0);
+			fprintf(stdout, "%s", recvBuff);
+		
 
 			(void) printf(CLIENT_PROMPT);
 			(void) fflush(stdout);
