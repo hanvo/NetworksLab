@@ -77,7 +77,6 @@ int main(int argc, char *argv[]) {
 
 		int openFd;
 		int sizeOfFile = 0;
-		int currentlyOpenFileSize;
 		int fileSizeLeft;
 
 		while((len = recv(clientSocketfd, buff, BUFF_SIZE, 0) > 0)) {
@@ -109,7 +108,6 @@ int main(int argc, char *argv[]) {
 				}
 
 				sizeOfFile = lseek(openFd, 0, SEEK_END); //get file size
-				currentlyOpenFileSize = sizeOfFile;
 				lseek(openFd, 0, 0); //move pointer back to beginning
 				fileSizeLeft = sizeOfFile;
 
@@ -130,12 +128,12 @@ int main(int argc, char *argv[]) {
 				readlen[counter] = '\0';
 				int length = atoi(readlen);
 
-				fileSizeLeft = sizeOfFile - length;
 
 				int readErr;
-				if( fileSizeLeft > 0 ) {
+				if( (fileSizeLeft - length) > 0 ) {
+					fileSizeLeft = fileSizeLeft - length;
 					readErr = read(openFd, fileRead, length);
-					sizeOfFile = fileSizeLeft;
+					//sizeOfFile = fileSizeLeft;
 				} else {
 					fileSizeLeft = fileSizeLeft + length;
 					readErr = read(openFd, fileRead, fileSizeLeft);
@@ -169,19 +167,16 @@ int main(int argc, char *argv[]) {
 				int length = atoi(backlen);
 
 				printf("Back length: %d\n", length);
-
-				printf("currentlyOpenFileSize: %d\n", currentlyOpenFileSize);
 				printf("fileSizeLeft: %d \n", fileSizeLeft);
 
-				if( (currentlyOpenFileSize == fileSizeLeft) || ((fileSizeLeft + length) > currentlyOpenFileSize) ) {
+				if( (sizeOfFile == fileSizeLeft) || ((fileSizeLeft + length) > sizeOfFile) ) {
 					printf("CANT GO BACK NO MORE \n");
 					reply = -1;
 				} else {
-					int newPos = currentlyOpenFileSize - (fileSizeLeft + length);
+					int newPos = sizeOfFile - (fileSizeLeft + length);
 					printf("newPos: %d\n",newPos);
 					lseek(openFd, newPos, SEEK_SET);
 					fileSizeLeft = fileSizeLeft + length;
-					sizeOfFile = fileSizeLeft;
 				}
 				snprintf(serverReply, 3, "%d",reply);
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
