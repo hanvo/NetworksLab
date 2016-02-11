@@ -128,15 +128,17 @@ int main(int argc, char *argv[]) {
 				readlen[counter] = '\0';
 				int length = atoi(readlen);
 
-
 				int readErr;
 				if( (fileSizeLeft - length) > 0 ) {
+					//everything is good to read still got room
 					fileSizeLeft = fileSizeLeft - length;
 					readErr = read(openFd, fileRead, length);
-					//sizeOfFile = fileSizeLeft;
 				} else {
-					fileSizeLeft = fileSizeLeft + length;
+					//readlen too long. read rest of file. 
+					printf("READ WHAT IS LEFT\n");
+					//fileSizeLeft = fileSizeLeft + length;
 					readErr = read(openFd, fileRead, fileSizeLeft);
+					fileSizeLeft = 0;
 				}
 
 				if( readErr <= 0 ) {
