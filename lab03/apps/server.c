@@ -10,6 +10,7 @@
 
 
 #define BUFF_SIZE 1028
+#define FILE_SIZE 100000
 
 int main(int argc, char *argv[]) {	
 	int sockfd, bindfd, clientSocketfd; 
@@ -108,6 +109,33 @@ int main(int argc, char *argv[]) {
 
 			} else if( strncmp(check, keyRead, 5) == 0  ) {
 				printf("READ\n");
+				char readlen[BUFF_SIZE];
+				char fileRead[FILE_SIZE];
+				int x;
+				int counter = 0;
+				for( x = 5; buff[x] != '\n'; x++ ) {
+					readlen[counter] = buff[x];
+					counter++;
+				}
+				readlen[counter] = '\0';
+				int length = atoi(readlen);
+				printf("LENGTH OF FILE TO BE READ: %d\n", length);
+
+				int readErr = read(openFd, fileRead, length);
+				if( readErr < 0 ) {
+					reply = -1;
+				} else {
+					fileRead[length] = '\0';
+					printf("fileRead results: %s\n", fileRead);
+					reply = readErr;
+				}
+
+
+				reply = 1;
+				snprintf(serverReply, 3, "%d",reply);
+				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
+
+
 			} else if( strncmp(check, keyBack, 5) == 0  ) {
 				printf("Back\n");
 			} else if( strncmp(check, keyClos, 5) == 0  ) {
