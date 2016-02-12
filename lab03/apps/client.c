@@ -74,10 +74,16 @@ int main(int argc, char *argv[]) {
 			int length = recv(sockfd, recvBuff, BUFF_SIZE, 0);
 			if( recvBuff[0] == '1' && recvBuff[1] == '\n' ) {
 				printf(SERVER_PROMPT);
-				printf("1 \n");
+				fflush(stdout);
+				write(1, recvBuff, length);
+				printf("\n");
+				fflush(stdout);
 			} else if ( recvBuff[0] == '-' ){
 				printf(SERVER_PROMPT);
-				printf("-1 \n");
+				fflush(stdout);
+				write(1, recvBuff, length);
+				printf("\n");
+				fflush(stdout);
 			} else {
 				printf(SERVER_PROMPT);
 				fflush(stdout);
