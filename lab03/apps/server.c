@@ -28,6 +28,9 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
+	//In cases where I shut my server before my client 
+	//I would get locked out of my port. THis code allows me to reconnect to same port
+	//following that mistake.
 	int optval = 1;
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval, sizeof( int ) );
 
@@ -99,14 +102,12 @@ int main(int argc, char *argv[]) {
 
 					//check if file Name has..
 					if( strstr(fileBuffer, "..") ) {
-						//printf("CONTAINS ..\n");
 						reply = -1;
 					}
 
 					openFd = open(fileBuffer, O_RDWR);
 					if( openFd < 0 ) {
-						//does not exist file already open 
-						//printf("Error opening\n");
+						//does not exist/file already open 
 						reply = -1;
 					}
 
@@ -119,12 +120,13 @@ int main(int argc, char *argv[]) {
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 
 			} else if( strncmp(check, keyRead, 5) == 0  ) {
-				//printf("READ\n");
 				char readlen[BUFF_SIZE];
 				char fileRead[FILE_SIZE];
 				char sendBuffer[BUFF_SIZE];
 				int x;
 				int counter = 0;
+
+				//Parse out length to be read
 				for( x = 5; buff[x] != '\n'; x++ ) {
 					readlen[counter] = buff[x];
 					counter++;
@@ -134,12 +136,11 @@ int main(int argc, char *argv[]) {
 
 				int readErr;
 				if( (fileSizeLeft - length) > 0 ) {
-					//everything is good to read still got room
+					//Still room left to read.
 					fileSizeLeft = fileSizeLeft - length;
 					readErr = read(openFd, fileRead, length);
 				} else {
-					//readlen too long. read rest of file. 
-					//printf("READ WHAT IS LEFT\n");
+					//Requested read too long. Therefore read rest of file. 
 					readErr = read(openFd, fileRead, fileSizeLeft);
 					fileSizeLeft = 0;
 				}
@@ -151,6 +152,8 @@ int main(int argc, char *argv[]) {
 					reply = readErr;
 				}
 
+				//Preping send messge with format:
+				//Number Bytes Read "Space" Data bytes from file
 				snprintf(serverReply, 3, "%d",reply);
 				strcpy(sendBuffer, serverReply);
 				strcat(sendBuffer, " ");
@@ -160,10 +163,10 @@ int main(int argc, char *argv[]) {
 				int sendErr = send(clientSocketfd, sendBuffer,(int)strlen(sendBuffer), 0);
 
 			} else if( strncmp(check, keyBack, 5) == 0  ) {
-				//printf("Back\n");
 				char backlen[BUFF_SIZE];
 				int x;
 				int counter = 0;
+				//Parsing out how many back spaces to go back
 				for( x = 5; buff[x] != '\n'; x++ ) {
 					backlen[counter] = buff[x];
 					counter++;
@@ -171,12 +174,11 @@ int main(int argc, char *argv[]) {
 				backlen[counter] = '\0';
 				int length = atoi(backlen);
 
+				//Checking if going back is out of range
 				if( (sizeOfFile == fileSizeLeft) || ((fileSizeLeft + length) > sizeOfFile) ) {
-					//printf("CANT GO BACK NO MORE \n");
 					reply = -1;
 				} else {
 					int newPos = sizeOfFile - (fileSizeLeft + length);
-					//printf("newPos: %d\n",newPos);
 					lseek(openFd, newPos, SEEK_SET);
 					fileSizeLeft = fileSizeLeft + length;
 				}
@@ -184,7 +186,7 @@ int main(int argc, char *argv[]) {
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 
 			} else if( strncmp(check, keyClos, 4) == 0  ) {
-				//printf("clos\n");
+				//Check if anythign is even open. 
 				if( openFd == -1 ) {
 					reply = -1;
 				} else {
@@ -202,11 +204,11 @@ int main(int argc, char *argv[]) {
 			} else {
 				//printf("No command.\n");
 			}
-			//printf("Await new message \n");					
 		}
-		//Step 6 - Send	
+		break;
 	} 
 
 	//Step 7 - Close
-	//close( clientSocketfd );
+	close( clientSocketfd );
+	close( sockfd );
 }

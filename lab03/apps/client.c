@@ -20,7 +20,6 @@ int main(int argc, char *argv[]) {
 	int sockfd;
 
 	if ( argc < 2 || argc > 3) {
-		printf(" Not enough args ");
 		exit(1);
 	}
 
@@ -30,7 +29,6 @@ int main(int argc, char *argv[]) {
 	//Step 1 - Start the socket 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if( sockfd < 0 ) {
-		printf( "Socket invalid.");
 		exit(1);
 	}
 
@@ -73,31 +71,30 @@ int main(int argc, char *argv[]) {
 			//Step 5 - Rec Message
 			int length = recv(sockfd, recvBuff, BUFF_SIZE, 0);
 			if( recvBuff[0] == '1' && recvBuff[1] == '\n' ) {
-				printf(SERVER_PROMPT);
-				fflush(stdout);
+				(void) printf(SERVER_PROMPT);
+				(void) fflush(stdout);
 				write(1, recvBuff, length);
-				printf("\n");
-				fflush(stdout);
+				(void) printf("\n");
+				(void) fflush(stdout);
 			} else if ( recvBuff[0] == '-' ){
-				printf(SERVER_PROMPT);
-				fflush(stdout);
-				write(1, recvBuff, length);
-				printf("\n");
-				fflush(stdout);
+				(void) printf(SERVER_PROMPT);
+				(void) fflush(stdout);
+				write(1, recvBuff, 2);
+				(void) printf("\n");
+				(void) fflush(stdout);
 			} else {
-				printf(SERVER_PROMPT);
-				fflush(stdout);
+				(void) printf(SERVER_PROMPT);
+				(void) fflush(stdout);
 				write(1, recvBuff, length);
-				printf("\n");
-				fflush(stdout);
+				(void) printf("\n");
+				(void) fflush(stdout);
 			}
-		
-
 			(void) printf(CLIENT_PROMPT);
 			(void) fflush(stdout);
 		}
+		break;
 	}
 	
 	//Step 6 - Close
-	//close( sockfd );
+	close( sockfd );
 }
