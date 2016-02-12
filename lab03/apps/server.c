@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 	int sockfd, bindfd, clientSocketfd; 
 
 	if ( argc != 2 ) {
-		printf(" Not enough args ");
+		//printf(" Not enough args ");
 		return -1;
 	}
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	//Step 1 - Start the socket 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if( sockfd < 0 ) {
-		printf( "Socket invalid.");
+		//printf( "Socket invalid.");
 		return -1;
 	}
 
@@ -39,14 +39,14 @@ int main(int argc, char *argv[]) {
 
 	bindfd = bind( sockfd, (struct sockaddr *) &serverIPAddress, sizeof(serverIPAddress) );
 	if( bindfd < 0 ) {
-		printf("Bind error \n");
+		//printf("Bind error \n");
 		return -1;
 	}
 
 	//Step 3 - Listen 
 	int listenReturn = listen ( sockfd, 1 );
 	if( listenReturn < 0 ) {
-		printf( "Listen Failed " );
+		//printf( "Listen Failed " );
 		return -1;
 	}
 
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
 		clientSocketfd = accept( sockfd, (struct sockaddr *) &client, &clientSize);
 		if( clientSocketfd < 0 ) {
-			printf( "Client Socket Accept Failed" );
+			//printf( "Client Socket Accept Failed" );
 			return -1;
 		} 
 	
@@ -99,14 +99,14 @@ int main(int argc, char *argv[]) {
 
 					//check if file Name has..
 					if( strstr(fileBuffer, "..") ) {
-						printf("CONTAINS ..\n");
+						//printf("CONTAINS ..\n");
 						reply = -1;
 					}
 
 					openFd = open(fileBuffer, O_RDWR);
 					if( openFd < 0 ) {
 						//does not exist file already open 
-						printf("Error opening\n");
+						//printf("Error opening\n");
 						reply = -1;
 					}
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 
 			} else if( strncmp(check, keyRead, 5) == 0  ) {
-				printf("READ\n");
+				//printf("READ\n");
 				char readlen[BUFF_SIZE];
 				char fileRead[FILE_SIZE];
 				char sendBuffer[BUFF_SIZE];
@@ -139,8 +139,7 @@ int main(int argc, char *argv[]) {
 					readErr = read(openFd, fileRead, length);
 				} else {
 					//readlen too long. read rest of file. 
-					printf("READ WHAT IS LEFT\n");
-					//fileSizeLeft = fileSizeLeft + length;
+					//printf("READ WHAT IS LEFT\n");
 					readErr = read(openFd, fileRead, fileSizeLeft);
 					fileSizeLeft = 0;
 				}
@@ -161,7 +160,7 @@ int main(int argc, char *argv[]) {
 				int sendErr = send(clientSocketfd, sendBuffer,(int)strlen(sendBuffer), 0);
 
 			} else if( strncmp(check, keyBack, 5) == 0  ) {
-				printf("Back\n");
+				//printf("Back\n");
 				char backlen[BUFF_SIZE];
 				int x;
 				int counter = 0;
@@ -172,15 +171,12 @@ int main(int argc, char *argv[]) {
 				backlen[counter] = '\0';
 				int length = atoi(backlen);
 
-				printf("Back length: %d\n", length);
-				printf("fileSizeLeft: %d \n", fileSizeLeft);
-
 				if( (sizeOfFile == fileSizeLeft) || ((fileSizeLeft + length) > sizeOfFile) ) {
-					printf("CANT GO BACK NO MORE \n");
+					//printf("CANT GO BACK NO MORE \n");
 					reply = -1;
 				} else {
 					int newPos = sizeOfFile - (fileSizeLeft + length);
-					printf("newPos: %d\n",newPos);
+					//printf("newPos: %d\n",newPos);
 					lseek(openFd, newPos, SEEK_SET);
 					fileSizeLeft = fileSizeLeft + length;
 				}
@@ -188,7 +184,7 @@ int main(int argc, char *argv[]) {
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 
 			} else if( strncmp(check, keyClos, 4) == 0  ) {
-				printf("clos\n");
+				//printf("clos\n");
 				if( openFd == -1 ) {
 					reply = -1;
 				} else {
@@ -204,13 +200,10 @@ int main(int argc, char *argv[]) {
 				int sendErr = send(clientSocketfd, serverReply,(int)strlen(serverReply), 0);
 
 			} else {
-				printf("No command.\n");
+				//printf("No command.\n");
 			}
-			printf("Await new message \n");					
+			//printf("Await new message \n");					
 		}
-
-
-
 		//Step 6 - Send	
 	} 
 

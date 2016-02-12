@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
 	int connectError = connect( sockfd, (struct sockaddr*)&serverIPAddress, sizeof(struct sockaddr) );
 	if( connectError < 0 ) {
-		fprintf(stderr, "Connect Error\n");
+		//fprintf(stderr, "Connect Error\n");
 		exit(1);
 	}
 
@@ -68,11 +68,7 @@ int main(int argc, char *argv[]) {
 			char recvBuff[4000];
 
 			//Step 4 - Send Message
-			int sendErr = send(sockfd, buff, len, 0);
-			if ( sendErr < 0 ) {
-				fprintf(stderr, "Send Error");
-				exit(1);
-			}
+			send(sockfd, buff, len, 0);
 
 			//Step 5 - Rec Message
 			int length = recv(sockfd, recvBuff, BUFF_SIZE, 0);
