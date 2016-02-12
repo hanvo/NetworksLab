@@ -205,10 +205,7 @@ int main(int argc, char *argv[]) {
 				//printf("No command.\n");
 			}
 		}
-		break;
+		//Step 6 - Close
+		close(clientSocketfd);
 	} 
-
-	//Step 7 - Close
-	close( clientSocketfd );
-	close( sockfd );
 }
