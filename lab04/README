@@ -1,0 +1,123 @@
+Computer Networks and Internets API Library
+Written by Michael H. Evangelista (michael@powerof.to)
+Please send bug reports to netbook@cs.purdue.edu
+
+---------------------
+What is the CNAI API?
+---------------------
+The CNAI API is a library of functions that simplify the creation of application programs that use TCP by hiding many of the details. The CNAP API library includes routines to wait for TCP connections and connect to servers. It also includes utilities to convert hostnames to IP addresses and service names to port numbers.
+
+--------------------------------------------------
+Where is the documentation for the CNAI API calls?
+--------------------------------------------------
+The CNAI API is documented in chapter 3 of Computer Networks and Internets, 3rd edition by Douglas E. Comer, Prentice-Hall, 2000.
+
+-------------------------------------------
+On what platforms can the CNAI API be used?
+-------------------------------------------
+The CNAI API has been tested under:
+
+	* Linux 2.2.12-20/x86
+	* Solaris 5.6/SPARC
+	* Solaris 5.6/x86
+	* Windows NT 4.0/x86
+	* Windows 2000 Professional. 
+
+The CNAI API should operate properly on other Win32 platforms (e.g., Windows 98, Windows ME).
+
+The Unix versions should be easily ported to any system supporting Berkeley Sockets and POSIX mutexes.
+
+---------------------------------------------------------------------
+How do I compile the CNAI API library under Unix (Linux and Solaris)?
+---------------------------------------------------------------------
+The compilation of the CNAI API library and included applications is the same under Solaris and Linux (see below for differences in the Makefile).
+
+Before using the enclosed Makefiles, ensure that the utilities 'ld' (linker) and 'gcc' (Gnu C Compiler) are in your path, or modify the Makefile so that the complete paths to these utilities are specified.
+
+* To build the CNAI API library (cnaiapi.o):
+
+1) enter the appropriate compile directory (either compile_linux or compile_solaris).
+2) issue the command 'make cnaiapi.o'. After compilation, the file cnaiapi.o will be in the compile directory.
+
+* To build the included applications:
+
+1) enter the appropriate compile directory (either compile_linux or compile_solaris).
+2) issue the command 'make apps' to build all the applications or 'make <application name>' to build just one. Because the applications depend on cnaiapi.o it will be built if it has not already. After compilation the application programs will be in the compile directory.
+
+----------------------------------------------------------------
+What are the differences between the Solaris and Linux Makfiles?
+----------------------------------------------------------------
+* They include the preprocessor definition of SOLARIS and LINUX respectively.
+* The Solaris Makefile links applications with the libraries socket, nsl, and pthread.
+
+----------------------------------------------------------
+How do I use the CNAI API library to build my own programs 
+under Solaris and Linux?
+----------------------------------------------------------
+To integrate the CNAI API library into your own programs you must:
+
+* have cnaiapi.o available (see 'How do I compile...?')
+
+* #include cnaiapi.h in each of your C program files that use CNAI API library calls. Ensure that your C compiler can find cnaiapi.h when you compile your C files. There are two ways to do this:
+
+	1) use the directive '#include <cnaiapi.h>' and use the -I option to tell the compiler where to look for .h files
+
+	2) use the directive '#include "cnaiapi.h"' and place cnaiapi.h in the same directory as your C files
+
+* link cnaiapi.o into your program. Do this by including cnaiapi.o in the list of files you pass to your compiler.
+
+* link to the socket, nsl, and pthread libraries if using Solaris. Do this by including '-lsocket -lnsl -lpthread' in your compiler options.
+
+----------------------------------------------------
+How do I compile the CNAI API Library under Windows?
+----------------------------------------------------
+To compile the CNAI API library for Windows you must have Microsoft Visual C++ 6.0 or higher. 
+
+* To build only the CNAI API library:
+
+1) Open the Visual C++ workspace file, 'compile_win32\Computer Networks and Internets\Computer Networks and Internets.DSW'.
+2) From the 'Build' menu choose 'Set Active Configuration...'
+3) From the list choose 'API_Library - Win32 Release' and click 'OK'.
+4) From the 'Build' menu choose 'Build cnaiapi.lib'. After compilation, the file 'cnaiapi.lib' will be in the folder 'compile_win32\Computer Networks and Internets\Api_Library\Release'.
+
+* To build the included applications:
+
+1) Build 'cnaiapi.lib' as described above.
+2) From the 'Build' menu choose 'Batch Build'
+3) Check the applications that you want built and also 'API_Library - Win32 Release' if it has not already been built.
+4) Click 'Build'. Visual C++ will build each application. When complete, the .exe file for each application will be in the directory 'compile_win32\Computer Networks and Internets\<application name>\Release'.
+
+* To run the included applications.
+
+1) Open a DOS prompt window. Because the included applications require command line arguments, they cannot be run by double-clicking their icons.
+2) Change to the the directory where the application exists as described in step 4 above.
+3) Type the application's name followed by the arguments required by the application.
+
+-------------------------------------------------------------------------
+How do I use the CNAI API library to build my own programs under Windows?
+-------------------------------------------------------------------------
+* have cnaiapi.lib available (see 'How do I compile...?')
+
+* #include cnaiapi.h in each of your C program files that use CNAI API library calls. Ensure that Visual C++ can find cnaiapi.h and cnaiapi_win32.h when you compile your C files. There are two ways to do this:
+
+	1)  Use the directive '#include <cnaiapi.h>' and tell Visual C++ where to look for .h files. You can tell Visual C++ where to look for .h files by setting the 'Additional Include Directories' field in Project Menu->Project Settings->C/C++ Tab->Preprocessor Category.
+
+	2) Use the directive '#include "cnaiapi.h"' and place cnaiapi.h and cnaiapi_win32.h in the same directory as your C files.
+
+* link cnaiapi.o into your program. Do this by including 'cnaiapi.lib' in the list of 'Object/Library Modules' under Project Menu->Project Settings->Link Tab->General Category. You may tell Visual C++ where to find the file 'cnaiapi.o' by setting the Additional Library Path in the Input Category of the same settings window.
+
+* link to the WinSock 2 library. Do this by including 'ws2_32.lib' in the Object/Library Modules list described above.
+
+--------------------------------------------------------------
+Do I need to explicitly call WSAStartup to initialize WinSock?
+--------------------------------------------------------------
+No. The CNAI API library does this for you the first time you invoke one of its routines.
+
+---------------------------------------------------------
+Is the CNAI API safe to use with multi-threaded programs?
+---------------------------------------------------------
+Yes. The CNAI API has mutexes around all non-MT-safe calls (e.g., gethostbyname, getservbyname). 
+
+To simplify the process of creating application programs that use TCP for beginners, all CNAI API library calls invoke cnaiapi_init first to ensure that the library has initialized. Doing so creates a race condition in multi-threaded programs in which multiple threads invoke routines from the CNAI API. If your program is multi-threaded you must explicitly call cnaiapi_init before spawning any threads to avoid this race condition.
+
+See api/cnaiapi_init.c for details.
