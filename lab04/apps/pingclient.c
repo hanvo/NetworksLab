@@ -7,32 +7,38 @@
 #include <arpa/inet.h> // inet_ntoa
 #include <sys/time.h>
 
-/* Client - ./pingclient  application_number hostname1_to_ping  hostname2_to_ping  ... */
-
 #define clientRes "Reply from server %s, latency : %ldusec\n"
+
+/*-----------------------------------------------------------------------
+ *
+ * Program: pingclient (UDP Style)
+ * Purpose: Sends a ping to servers and outputs Server IP in 
+ * 			Dot Notation with Latency in useconds.
+ * Usage:   pingclient <port> server1 server2 ... Up to 12
+ *
+ *-----------------------------------------------------------------------
+ */
 
 int main(int argc, char *argv[])
 {
 	int socketfd;
 	int32_t msg = 1;
 	char recBuff[1];
-	
+
+	/* - Check if args has at least 1 server to ping but at most 12 */
 	if( argc < 3 )
 		exit(1);
 
 	if( argc > 14 )
 		exit(1);
 	
-
 	int port = atoi(argv[1]);
 
 	/* -  Create a socket  */
 	socketfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if( socketfd < 0 ) {
-		//printf("Socket Failed");
+	if( socketfd < 0 )
 		exit(1);
-	}
 
 	struct sockaddr_in serverAddr, myAddr;
 	struct hostent *server;
@@ -45,10 +51,8 @@ int main(int argc, char *argv[])
 	myAddr.sin_port = htons((u_short) 0);  // This line of code is used to allow OS assign a port number
 	myAddr.sin_addr.s_addr = INADDR_ANY;
 	int bindErr = bind(socketfd, (struct sockaddr * )&myAddr, sizeof(struct sockaddr_in) );
-	if (bindErr < 0 ) {
-		//printf("Bind Err\n");
+	if (bindErr < 0 ) 
 		exit(1);
-	}
 
   	memset(&serverAddr, '0', sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
@@ -74,7 +78,6 @@ int main(int argc, char *argv[])
 	/* - Recv packets  */ 
  	for(counter = 2; counter < argc; counter++) {
  		struct timeval end,difference;
- 		//printf("Waiting for reply. \n");
     	struct sockaddr_storage sender;
 		socklen_t sendsize = sizeof(sender);
    		recvfrom(socketfd, recBuff, sizeof(recBuff), 0, (struct sockaddr*)&sender, &sendsize);
@@ -85,7 +88,7 @@ int main(int argc, char *argv[])
  			char * ipAddr = inet_ntoa(ipAddrSender);
  			timersub(&end ,&start, &difference);
  			long totalTime = (long)difference.tv_usec + ((long)difference.tv_sec * 1000000);
- 			printf(clientRes,ipAddr,totalTime);
+ 			(void) printf(clientRes,ipAddr,totalTime);
    		}
  	}
 }
