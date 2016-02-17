@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
 	/* -  Create a socket and bind the server's address to it. */
 
-	socketfd = socket(AF_INET, SOCK_DGRAM, 0);
+	socketfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if( socketfd < 0 ) {
 		printf("Socket Failed");
@@ -70,19 +70,17 @@ int main(int argc, char *argv[])
   		gettimeofday (&t1, NULL);
        	char buff[1];
        	printf("Chilling for msg. \n");
-       	if( recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize) ) {
+       	if( recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize) < 0 ) {
        		if(errno == EAGAIN ||errno == EWOULDBLOCK) {
 	       		printf("SLEEPY TIME\n");
        			sleep(sleepTime);
-       		} else {
-	       		printf("Got a message. \n");
-	 			gettimeofday (&t2, NULL);
-	 			awake.tv_sec = awake.tv_sec - (t2.tv_sec - t1.tv_sec);
-	 			int32_t msg = 2;
-	 			sendto(socketfd, &msg, sizeof(msg), 0,(struct sockaddr *) &sender, sizeof(struct sockaddr));
-	       	}
+       		}
        	} else {
-       		printf("When do i reach here?\n");
+       		printf("Got a message. \n");
+ 			gettimeofday (&t2, NULL);
+ 			awake.tv_sec = awake.tv_sec - (t2.tv_sec - t1.tv_sec);
+ 			int32_t msg = 2;
+ 			sendto(socketfd, &msg, sizeof(msg), 0,(struct sockaddr *) &sender, sizeof(struct sockaddr));
        	}
     }
 }
