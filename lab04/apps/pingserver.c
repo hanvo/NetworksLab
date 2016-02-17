@@ -74,18 +74,15 @@ int main(int argc, char *argv[])
        		if(errno == EAGAIN ||errno == EWOULDBLOCK) {
 	       		printf("SLEEPY TIME\n");
        			sleep(sleepTime);
-       		}
-       	}
-		else {
-       		printf("Got a message. \n");
- 			gettimeofday (&t2, NULL);
- 			awake.tv_sec = awake.tv_sec - (t2.tv_sec - t1.tv_sec);
- 			int32_t msg = 2;
- 			int sendErr = sendto(socketfd, &msg, sizeof(msg), 0,(struct sockaddr *) &sender, sizeof(struct sockaddr));
- 			if (sendErr < -1) {
-				printf("SendTo broke\n");
-				exit(1);
- 			}
+       		} else {
+	       		printf("Got a message. \n");
+	 			gettimeofday (&t2, NULL);
+	 			awake.tv_sec = awake.tv_sec - (t2.tv_sec - t1.tv_sec);
+	 			int32_t msg = 2;
+	 			sendto(socketfd, &msg, sizeof(msg), 0,(struct sockaddr *) &sender, sizeof(struct sockaddr));
+	       	}
+       	} else {
+       		printf("When do i reach here?\n");
        	}
     }
 }
