@@ -35,10 +35,10 @@ CFILES = $(API_DIR)/*.c $(APP_DIR)/*.c
 
 apps: $(APP_EXE)
 
-server: cnaiapi.o pingserver.o readln.o
-	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) server.o readln.o
-client: cnaiapi.o pingclient.o readln.o
-	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) client.o readln.o
+pingserver: cnaiapi.o pingserver.o readln.o
+	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) pingserver.o readln.o
+pingclient: cnaiapi.o pingclient.o readln.o
+	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) pingclient.o readln.o
 echoserver: cnaiapi.o echoserver.o readln.o
 	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) echoserver.o readln.o
 echoclient: cnaiapi.o echoclient.o readln.o
@@ -62,8 +62,8 @@ make_contact.o: $(API_DIR)/make_contact.c $(INC_DIR)/cnaiapi.h
 send_eof.o: $(API_DIR)/send_eof.c $(INC_DIR)/cnaiapi.h
 
 # Application Dependancies
-client.o: $(APP_DIR)/pingclient.c $(INC_DIR)/cnaiapi.h
-server.o: $(APP_DIR)/pingserver.c $(INC_DIR)/cnaiapi.h
+pingclient.o: $(APP_DIR)/pingclient.c $(INC_DIR)/cnaiapi.h
+pingserver.o: $(APP_DIR)/pingserver.c $(INC_DIR)/cnaiapi.h
 echoclient.o: $(APP_DIR)/echoclient.c $(INC_DIR)/cnaiapi.h
 echoserver.o: $(APP_DIR)/echoserver.c $(INC_DIR)/cnaiapi.h
 readln.o: $(APP_DIR)/readln.c $(INC_DIR)/cnaiapi.h

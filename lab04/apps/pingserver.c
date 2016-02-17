@@ -3,6 +3,10 @@
 #include <string.h>		
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <errno.h> // for EAGAIN and EWOULDBLOCK
+#include <unistd.h> //sleep
+
 
 /* Server - ./pingserver  application_number  awake_period_in_seconds  sleep_period_in_seconds */
 
@@ -11,7 +15,7 @@ int main(int argc, char *argv[])
 {
 	int socketfd;
 	struct sockaddr_in serverInfo; 
-	struct timeval awake, sleep;
+	struct timeval awake;
 
 	if( argc < 4 ) {
 		printf("Not enough Args\n" );
@@ -19,8 +23,8 @@ int main(int argc, char *argv[])
 	}
 
 	int port = atoi(argv[1]);
+	int sleepTime = atoi(argv[3]);
 	awake.tv_sec = atoi(argv[2]);
-	sleep.tv_sec = atoi(argv[3]);
 
 	printf("Port: %d\n", port);
 
@@ -50,7 +54,7 @@ int main(int argc, char *argv[])
 	socklen_t sendsize = sizeof(sender);
 
     while( 1 ) {
-    	int err = setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &awake, sizeof(awake));
+    	int err = setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *) &awake, sizeof(awake));
 	   
 	    /* 1 - Get the current time (t1)
 	       2 - Start receiving packets using rcvfrom 
@@ -63,18 +67,21 @@ int main(int argc, char *argv[])
        	char buff[1];
        	printf("Chilling for msg. \n");
        	int recvErr = recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize);
-       	if(recvErr < 0 ) {
-       		printf("Error with recvfrom");
-       		exit(1);
+       	if(recvErr == EAGAIN || recvErr == EWOULDBLOCK) {
+       		printf("SLEEPY TIME\n");
+       		sleep(sleepTime);
+       	} else {
+       		printf("Got a message. \n");
+ 			gettimeofday (&t2, NULL);
+ 			awake.tv_sec = awake.tv_sec - (t2.tv_sec - t1.tv_sec);
+ 			int32_t msg = 2;
+ 			int sendErr = sendto(socketfd, &msg, sizeof(msg), 0,(struct sockaddr *) &sender, sizeof(struct sockaddr));
+ 			if (sendErr < -1) {
+				printf("SendTo broke\n");
+				exit(1);
+ 			}
+
        	}
-       	printf("Got a message. \n");
-
-
     }
-
-
-	close(socketfd);
-
-	return 0;
 }
 
