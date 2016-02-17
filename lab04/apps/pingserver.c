@@ -14,9 +14,11 @@ int main(int argc, char *argv[])
 	int socketfd;
 	struct sockaddr_in serverInfo; 
 	struct timeval awake;
+	int32_t msg = 2;
 
-	if( argc < 4 ) {
-		printf("Not enough Args\n" );
+
+	if( argc == 4 ) {
+		//printf("Not enough Args\n" );
 		exit(1);
 	}
 
@@ -28,14 +30,14 @@ int main(int argc, char *argv[])
 
 	awake.tv_sec = convertedAwake;
 
-	printf("Port: %d\n", port);
+	//printf("Port: %d\n", port);
 
 	/* -  Create a socket and bind the server's address to it. */
 
 	socketfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if( socketfd < 0 ) {
-		printf("Socket Failed");
+		//printf("Socket Failed");
 		exit(1);
 	}
 
@@ -45,7 +47,7 @@ int main(int argc, char *argv[])
 	serverInfo.sin_addr.s_addr = INADDR_ANY;
 
 	if( bind(socketfd, (struct sockaddr *) &serverInfo, sizeof(struct sockaddr)) < 0 ) {
-		printf("Bind Failed\n");
+		//printf("Bind Failed\n");
 		exit(1);
 	}
 
@@ -67,19 +69,19 @@ int main(int argc, char *argv[])
 	         difference t2 -t1 (i.e. the awake_time_period = awake_time_period - (t2 - t1))
 	       5 - The server replies back to the client with an 32 bit unsigned integer number (value = 2)
 	    */
+
   		gettimeofday (&t1, NULL);
        	char buff[1];
-       	printf("Chilling for msg. \n");
+       	//printf("Chilling for msg. \n");
        	if( recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize) < 0 ) {
        		if(errno == EAGAIN ||errno == EWOULDBLOCK) {
-	       		printf("SLEEPY TIME\n");
+	       		//printf("SLEEPY TIME\n");
        			sleep(sleepTime);
        		}
        	} else {
-       		printf("Got a message. \n");
+       		//printf("Got a message. \n");
  			gettimeofday (&t2, NULL);
  			awake.tv_sec = awake.tv_sec - (t2.tv_sec - t1.tv_sec);
- 			int32_t msg = 2;
  			sendto(socketfd, &msg, sizeof(msg), 0,(struct sockaddr *) &sender, sizeof(struct sockaddr));
        	}
     }

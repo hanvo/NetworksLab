@@ -16,11 +16,13 @@ int main(int argc, char *argv[])
 	int socketfd;
 	int32_t msg = 1;
 	char recBuff[1];
-
-	if( argc < 2 && argc > 13) {
-		printf("Not enough Args or too much\n" );
+	
+	if( argc < 3 )
 		exit(1);
-	}
+
+	if( argc > 14 )
+		exit(1);
+	
 
 	int port = atoi(argv[1]);
 
@@ -28,7 +30,7 @@ int main(int argc, char *argv[])
 	socketfd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if( socketfd < 0 ) {
-		printf("Socket Failed");
+		//printf("Socket Failed");
 		exit(1);
 	}
 
@@ -44,7 +46,7 @@ int main(int argc, char *argv[])
 	myAddr.sin_addr.s_addr = INADDR_ANY;
 	int bindErr = bind(socketfd, (struct sockaddr * )&myAddr, sizeof(struct sockaddr_in) );
 	if (bindErr < 0 ) {
-		printf("Bind Err\n");
+		//printf("Bind Err\n");
 		exit(1);
 	}
 
@@ -63,7 +65,6 @@ int main(int argc, char *argv[])
 		addr.s_addr = addr_list[0]->s_addr;
 		serverAddr.sin_addr = addr;
 		sendto(socketfd, &msg, sizeof(msg), 0, (struct sockaddr*)&serverAddr, sizeof(struct sockaddr));
-		printf("Sent to server msg: %d\n", msg);
 	  	//Clear the memory and then reset values
 	  	memset(&serverAddr, '0', sizeof(serverAddr));
   	    serverAddr.sin_family = AF_INET;
@@ -73,17 +74,18 @@ int main(int argc, char *argv[])
 	/* - Recv packets  */ 
  	for(counter = 2; counter < argc; counter++) {
  		struct timeval end,difference;
- 		printf("Waiting for reply. \n");
+ 		//printf("Waiting for reply. \n");
     	struct sockaddr_storage sender;
 		socklen_t sendsize = sizeof(sender);
    		recvfrom(socketfd, recBuff, sizeof(recBuff), 0, (struct sockaddr*)&sender, &sendsize);
-   		gettimeofday(&end, NULL);
- 		struct sockaddr_in *ipv4Sender = (struct sockaddr_in *)&sender;
- 		struct in_addr ipAddrSender = ipv4Sender->sin_addr;
- 		char * ipAddr = inet_ntoa(ipAddrSender);
- 		timersub(&end ,&start, &difference);
- 		long totalTime = (long)difference.tv_usec + ((long)difference.tv_sec * 1000000);
- 		printf(clientRes,ipAddr,totalTime);
-
+   		if(recBuff[0] == 2) {
+   			gettimeofday(&end, NULL);
+ 			struct sockaddr_in *ipv4Sender = (struct sockaddr_in *)&sender;
+ 			struct in_addr ipAddrSender = ipv4Sender->sin_addr;
+ 			char * ipAddr = inet_ntoa(ipAddrSender);
+ 			timersub(&end ,&start, &difference);
+ 			long totalTime = (long)difference.tv_usec + ((long)difference.tv_sec * 1000000);
+ 			printf(clientRes,ipAddr,totalTime);
+   		}
  	}
 }
