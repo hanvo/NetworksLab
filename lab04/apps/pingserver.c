@@ -4,6 +4,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+/* Server - ./pingserver  application_number  awake_period_in_seconds  sleep_period_in_seconds */
+
 
 int main(int argc, char *argv[])
 {
@@ -34,6 +36,7 @@ int main(int argc, char *argv[])
  	memset( &serverInfo, 0, sizeof(serverInfo) );
 	serverInfo.sin_family = AF_INET;
 	serverInfo.sin_port = htons((u_short) port);
+	serverInfo.sin_addr.s_addr = INADDR_ANY;
 
 	if( bind(socketfd, (struct sockaddr *) &serverInfo, sizeof(struct sockaddr)) < 0 ) {
 		printf("Bind Failed\n");
@@ -42,7 +45,7 @@ int main(int argc, char *argv[])
 
 	/* -  Use the timeval struct to store the values of sleep and awake time periods. */
 
-    struct timeval tvalBefore, tvalAfter; 
+    struct timeval t1, t2; 
     struct sockaddr_storage sender;
 	socklen_t sendsize = sizeof(sender);
 
@@ -56,14 +59,15 @@ int main(int argc, char *argv[])
 	         difference t2 -t1 (i.e. the awake_time_period = awake_time_period - (t2 - t1))
 	       5 - The server replies back to the client with an 32 bit unsigned integer number (value = 2)
 	    */
-       gettimeofday (&tvalBefore, NULL);
-       char buff[1];
-       printf("recvfroming");
-       int recvErr = recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize);
-       if(recvErr < 0 ) {
+  		gettimeofday (&t1, NULL);
+       	char buff[1];
+       	printf("Chilling for msg. \n");
+       	int recvErr = recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize);
+       	if(recvErr < 0 ) {
        		printf("Error with recvfrom");
        		exit(1);
-       }
+       	}
+       	printf("Got a message. \n");
 
 
     }
