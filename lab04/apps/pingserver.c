@@ -7,9 +7,7 @@
 #include <errno.h> // for EAGAIN and EWOULDBLOCK
 #include <unistd.h> //sleep
 
-
 /* Server - ./pingserver  application_number  awake_period_in_seconds  sleep_period_in_seconds */
-
 
 int main(int argc, char *argv[])
 {
@@ -24,7 +22,11 @@ int main(int argc, char *argv[])
 
 	int port = atoi(argv[1]);
 	int sleepTime = atoi(argv[3]);
-	awake.tv_sec = atoi(argv[2]);
+	int convertedAwake = atoi(argv[2]);
+
+	memset( &awake, 0, sizeof(awake) );
+
+	awake.tv_sec = convertedAwake;
 
 	printf("Port: %d\n", port);
 
@@ -54,8 +56,10 @@ int main(int argc, char *argv[])
 	socklen_t sendsize = sizeof(sender);
 
     while( 1 ) {
-    	int err = setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *) &awake, sizeof(awake));
-	   
+    	if( setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &awake, sizeof(struct timeval)) ) {
+			printf("setsockoopt failed with errno: %s\n", strerror(errno));    	
+		}
+
 	    /* 1 - Get the current time (t1)
 	       2 - Start receiving packets using rcvfrom 
 	       3 - Check the return value of recvfrom and number of last error (errno), if it is EAGAIN or EWOULDBLOCK call sleep().  
@@ -66,11 +70,13 @@ int main(int argc, char *argv[])
   		gettimeofday (&t1, NULL);
        	char buff[1];
        	printf("Chilling for msg. \n");
-       	int recvErr = recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize);
-       	if(recvErr == EAGAIN || recvErr == EWOULDBLOCK) {
-       		printf("SLEEPY TIME\n");
-       		sleep(sleepTime);
-       	} else {
+       	if( recvfrom(socketfd, buff, sizeof(buff), 0, (struct sockaddr*)&sender, &sendsize) ) {
+       		if(errno == EAGAIN ||errno == EWOULDBLOCK) {
+	       		printf("SLEEPY TIME\n");
+       			sleep(sleepTime);
+       		}
+       	}
+		else {
        		printf("Got a message. \n");
  			gettimeofday (&t2, NULL);
  			awake.tv_sec = awake.tv_sec - (t2.tv_sec - t1.tv_sec);
@@ -80,7 +86,6 @@ int main(int argc, char *argv[])
 				printf("SendTo broke\n");
 				exit(1);
  			}
-
        	}
     }
 }
