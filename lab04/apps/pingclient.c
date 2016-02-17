@@ -82,6 +82,8 @@ int main(int argc, char *argv[])
  		struct in_addr ipAddrSender = ipv4Sender->sin_addr;
  		char * ipAddr = inet_ntoa(ipAddrSender);
  		timersub(&end ,&start, &difference);
- 		printf(clientRes,ipAddr,(long)difference.tv_usec);
+ 		long totalTime = (long)difference.tv_usec + ((long)difference.tv_sec * 1000000);
+ 		printf(clientRes,ipAddr,totalTime);
+
  	}
 }
