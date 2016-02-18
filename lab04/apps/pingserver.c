@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     while( 1 ) {
     	if( setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &awake, sizeof(struct timeval)) ) {
-			printf("setsockoopt failed with errno: %s\n", strerror(errno));    	
+			//printf("setsockoopt failed with errno: %s\n", strerror(errno));    	
 		}
 
 	    /* 1 - Get the current time (t1)
