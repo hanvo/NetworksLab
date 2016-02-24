@@ -22,23 +22,17 @@ API_SRC = 	appname_to_appnum.c	\
 API_OBJ = $(API_SRC:.c=.o)
 
 APP_DIR = ../apps
-APP_SRC =	server.c		\
-		client.c		\
-		infserver.c		\
+APP_SRC =	infserver.c		\
 		infclient.c		\
 		readln.c
 
 APP_OBJ = $(APP_SRC:.c=.o)
-APP_EXE = infserver infclient server client
+APP_EXE = infserver infclient 
 
 CFILES = $(API_DIR)/*.c $(APP_DIR)/*.c
 
 apps: $(APP_EXE)
 
-server: cnaiapi.o server.o readln.o
-	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) server.o readln.o
-client: cnaiapi.o client.o readln.o
-	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) client.o readln.o
 infserver: cnaiapi.o infserver.o readln.o
 	$(CC) -o $@ $(LIBS) $(CNAIAPI_LIB) infserver.o readln.o
 infclient: cnaiapi.o infclient.o readln.o
@@ -62,8 +56,6 @@ make_contact.o: $(API_DIR)/make_contact.c $(INC_DIR)/cnaiapi.h
 send_eof.o: $(API_DIR)/send_eof.c $(INC_DIR)/cnaiapi.h
 
 # Application Dependancies
-client.o: $(APP_DIR)/client.c $(INC_DIR)/cnaiapi.h
-server.o: $(APP_DIR)/server.c $(INC_DIR)/cnaiapi.h
 infclient.o: $(APP_DIR)/infclient.c $(INC_DIR)/cnaiapi.h
 infserver.o: $(APP_DIR)/infserver.c $(INC_DIR)/cnaiapi.h
 readln.o: $(APP_DIR)/readln.c $(INC_DIR)/cnaiapi.h
