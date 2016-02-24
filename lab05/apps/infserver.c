@@ -48,6 +48,8 @@ int main(int argc, char *argv[])
 	char room[MAX_ROOMS][LENGTH_OF_MSG];
 	short numRoomsFilled = 0;
 
+	memset(room, '\0', sizeof(room[0][0])* MAX_ROOMS * LENGTH_OF_MSG);
+
 	while( 1 ) {
 		//Step 4 - Accept a client  
 		struct sockaddr_in client;
@@ -58,10 +60,12 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 
+		//Step 5 - Rec message
 		char recBuff[14];
 		if( recv(clientConnectedFd , recBuff, 14, 0) < 0 )
 			perror("Error: ");
 			
+		//Step 6 - Parse out between ADV CON 
 		char* type = strtok(recBuff, " ");
 
 		char chanId[10];
@@ -72,6 +76,27 @@ int main(int argc, char *argv[])
 
 		if( strcmp(type, "ADV") == 0) {
 			printf("ADV\n");
+
+			strncpy(room[0], "12        ", 10);
+			printf("chanId: %sEND", chanId);
+			int index;
+			for( index = 0; index < MAX_ROOMS; index++) {
+				if( strcmp(room[index], chanId) == 0)
+					break;
+			}
+
+			printf("index = %d\n", index);
+			if(index == MAX_ROOMS) {
+				int freeSpot;
+				for(freeSpot = 0; freeSpot < MAX_ROOMS; freeSpot++) {
+					if(strcmp(room[freeSpot], "\0") == 0)
+						break;
+				}
+				printf("Next avaiable spot is: %d\n", freeSpot);
+			} else{
+				printf("found it\n");
+			}
+
 		} else if( strcmp(type, "CON") == 0) {
 			printf("CON\n");
 		} else {
