@@ -5,22 +5,7 @@
 #include <string.h>
 #include <netdb.h> // Gethostbyname
 
-char* channelIdPadding(char * id) {
-	int len = strlen(id);
-	int index;
-	char buff[10];
-	char* ret = malloc(10);
-	if((len = strlen(id)) != 10 ) {
-		for( index = 0; index < len; index++)
-			buff[index] = id[index];
-		for( index; index < 10; index++ )
-			buff[index] = ' ';
-
-		strcpy(ret, buff);
-		return ret;
-	}
-	return id;
-}
+char* makeMessage(char*, char*);
 
 int main(int argc, char *argv[]) 
 {
@@ -35,14 +20,16 @@ int main(int argc, char *argv[])
 	int port = atoi(argv[2]);
 	char* clientType = argv[3];
 	char* channelId = argv[4];
-	char* formattedId = channelIdPadding(channelId);
-	
-	printf("Server HostName: %s\n", server_hostName);
-	printf("Port: %d \n", port);
-	printf("client Type: %s\n", clientType);
-	printf("channel Id: %s \n", formattedId);
-	printf("sizeof ID: %d\n", (int)strlen(formattedId));
-	
+
+	if(strlen(clientType) != 3){
+		exit(1);
+	}
+	if(strlen(channelId) > 10) {
+		exit(1);
+	}
+
+	char *msg = makeMessage(clientType, channelId);
+
 	//Step 1 - Start the Socket
 	socketfd = socket( AF_INET, SOCK_STREAM, 0 );
 	if( socketfd < 0 ) {
@@ -73,12 +60,24 @@ int main(int argc, char *argv[])
 		perror("Error: ");
 	}
 
+
+
+
 	printf("Closing Connection \n");
-
+	free(msg);
 	close(socketfd);
-
-
-	free(formattedId);
-
 	return 0;
+}
+
+char* makeMessage(char* type, char* id){
+	char *msg = (char*) malloc(sizeof(char) * 14);
+	strncpy(msg, type, strlen(type));
+	strncat(msg, " ", sizeof(char));
+	strncat(msg, id, strlen(id));
+	int len = strlen(msg);
+	if(len != 14){
+		for(len; len != 14; len++ ) 
+			strncat(msg, " ", sizeof(char));
+	}
+	return msg;
 }
