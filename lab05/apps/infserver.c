@@ -78,33 +78,26 @@ int main(int argc, char *argv[])
 			chanId[counter] = recBuff[counter + 4];
 		}
 
-		if( strcmp(type, "ADV") == 0) {
-			printf("ADV\n");
-
-			printf("chanId: %sEND\n", chanId);
-			
+		if( strcmp(type, "ADV") == 0) {			
+			//Checking if ADV Channel ID already exists 
 			int index;
 			for( index = 0; index < MAX_ROOMS; index++) {
 				if( strcmp(room[index], chanId) == 0)
 					break;
 			}
+			//If it cycles and finds nothing it will add it to room array and 
+			// in clientFds array to keep track when something wants to pair up
 			if(index == MAX_ROOMS) {
 				int freeSpot;
 				for(freeSpot = 0; freeSpot < MAX_ROOMS; freeSpot++) {
 					if(strcmp(room[freeSpot], "\0") == 0) {
-						printf("Breaking!\n");
 						break;
 					}
 				}
-				printf("Next avaiable spot is: %d\n", freeSpot);
-				printf("Sizeof channelid: %d\n", (int)sizeof(chanId));
 				strncpy(room[freeSpot], chanId, sizeof(chanId));
 				clientFds[freeSpot] = clientConnectedFd;
-				printf("Value at FreeSpot: %sEND\n", room[freeSpot]);
-				printf("CliendID at FreeSpot: %dEND\n", clientFds[freeSpot]);
-
 			} else{
-				printf("found it Close this connection\n");
+				//If someone req to ADV to same connection just close it. 
 				close(clientConnectedFd);
 			}
 		} else if( strcmp(type, "CON") == 0) {
@@ -115,9 +108,28 @@ int main(int argc, char *argv[])
 				if( strcmp(room[index], chanId) == 0)
 					break;
 			}
-
 			if( index != MAX_ROOMS ) {
 				printf("Found a exsiting connection\n");
+				int pid;
+				if( (pid = fork()) == -1 ) {
+					close(clientConnectedFd);
+				} else if( pid == 0 ) {
+					printf("Child\n");
+					//this is where the communication between two people happens
+					exit(0);
+				} else if( pid > 0 ) {
+					//parent process go remove stuff from the arrays 
+					printf("Parent\n");
+					printf("BEFORE room[index]: %sENDn", room[index]);
+
+					room[index][0] = '\0';
+					clientFds[index] = -1;
+
+					printf("room[index]: %sENDn", room[index]);
+					printf("clientFds[index]: %d\n", clientFds[index]);
+
+				}
+
 			} else {
 				printf("No connection found. Exit.\n");
 			}
