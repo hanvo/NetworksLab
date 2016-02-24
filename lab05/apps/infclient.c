@@ -60,7 +60,10 @@ int main(int argc, char *argv[])
 		perror("Error: ");
 	}
 
-
+	printf("Sending: %s",msg);
+	printf("sizeof(msg): %d\n", (int)strlen(msg));
+	if(send(socketfd, msg, strlen(msg), 0) < 0 ) 
+		perror("Error: ");
 
 
 	printf("Closing Connection \n");

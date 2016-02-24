@@ -4,6 +4,9 @@
 #include <netinet/in.h>
 #include <string.h>
 
+#define MAX_ROOMS 10
+#define LENGTH_OF_MSG 10
+
 int main(int argc, char *argv[]) 
 {
 	int socketfd, clientConnectedFd;
@@ -42,6 +45,9 @@ int main(int argc, char *argv[])
 		perror("Error: ");
 	}
 
+	char room[MAX_ROOMS][LENGTH_OF_MSG];
+	short numRoomsFilled = 0;
+
 	while( 1 ) {
 		//Step 4 - Accept a client  
 		struct sockaddr_in client;
@@ -49,10 +55,29 @@ int main(int argc, char *argv[])
 		clientConnectedFd = accept( socketfd, (struct sockaddr *) &client, &clientSize );
 		if( clientConnectedFd < 0 ) {
 			perror("Error: ");
-			return -1;
+			exit(1);
 		}
 
-		
+		char recBuff[14];
+		if( recv(clientConnectedFd , recBuff, 14, 0) < 0 )
+			perror("Error: ");
+			
+		char* type = strtok(recBuff, " ");
+
+		char chanId[10];
+		int counter;
+		for(counter = 0; counter < 10; counter++) {
+			chanId[counter] = recBuff[counter + 4];
+		}
+
+		if( strcmp(type, "ADV") == 0) {
+			printf("ADV\n");
+		} else if( strcmp(type, "CON") == 0) {
+			printf("CON\n");
+		} else {
+			printf(" Not a valid command exit client gracefully.\n");
+		}
+
 
 
 
