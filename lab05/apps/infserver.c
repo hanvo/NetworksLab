@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 			printf("ADV\n");
 
 			strncpy(room[0], "12        ", 10);
-			printf("chanId: %sEND", chanId);
+			printf("chanId: %sEND\n", chanId);
 			int index;
 			for( index = 0; index < MAX_ROOMS; index++) {
 				if( strcmp(room[index], chanId) == 0)
@@ -89,27 +89,23 @@ int main(int argc, char *argv[])
 			if(index == MAX_ROOMS) {
 				int freeSpot;
 				for(freeSpot = 0; freeSpot < MAX_ROOMS; freeSpot++) {
-					if(strcmp(room[freeSpot], "\0") == 0)
+					if(strcmp(room[freeSpot], "\0") == 0) {
+						printf("Breaking!\n");
 						break;
+					}
 				}
 				printf("Next avaiable spot is: %d\n", freeSpot);
+				printf("Sizeof channelid: %d\n", (int)sizeof(chanId));
+				strncpy(room[freeSpot], chanId, sizeof(chanId));
+				printf("Value at FreeSpot: %sEND\n", room[freeSpot]);
 			} else{
 				printf("found it\n");
 			}
-
 		} else if( strcmp(type, "CON") == 0) {
 			printf("CON\n");
 		} else {
 			printf(" Not a valid command exit client gracefully.\n");
 		}
-
-
-
-
 	}
-
-
-
-
 	return 0;
 }
