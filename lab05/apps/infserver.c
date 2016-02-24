@@ -7,6 +7,8 @@
 #define MAX_ROOMS 10
 #define LENGTH_OF_MSG 10
 
+int findChanIdLocation(char, char);
+
 int main(int argc, char *argv[]) 
 {
 	int socketfd, clientConnectedFd;
@@ -46,9 +48,11 @@ int main(int argc, char *argv[])
 	}
 
 	char room[MAX_ROOMS][LENGTH_OF_MSG];
+	int clientFds[MAX_ROOMS];
 	short numRoomsFilled = 0;
 
 	memset(room, '\0', sizeof(room[0][0])* MAX_ROOMS * LENGTH_OF_MSG);
+	memset(clientFds, -1 , sizeof(int));
 
 	while( 1 ) {
 		//Step 4 - Accept a client  
@@ -77,15 +81,13 @@ int main(int argc, char *argv[])
 		if( strcmp(type, "ADV") == 0) {
 			printf("ADV\n");
 
-			strncpy(room[0], "12        ", 10);
 			printf("chanId: %sEND\n", chanId);
+			
 			int index;
 			for( index = 0; index < MAX_ROOMS; index++) {
 				if( strcmp(room[index], chanId) == 0)
 					break;
 			}
-
-			printf("index = %d\n", index);
 			if(index == MAX_ROOMS) {
 				int freeSpot;
 				for(freeSpot = 0; freeSpot < MAX_ROOMS; freeSpot++) {
@@ -97,12 +99,29 @@ int main(int argc, char *argv[])
 				printf("Next avaiable spot is: %d\n", freeSpot);
 				printf("Sizeof channelid: %d\n", (int)sizeof(chanId));
 				strncpy(room[freeSpot], chanId, sizeof(chanId));
+				clientFds[freeSpot] = clientConnectedFd;
 				printf("Value at FreeSpot: %sEND\n", room[freeSpot]);
+				printf("CliendID at FreeSpot: %dEND\n", clientFds[freeSpot]);
+
 			} else{
-				printf("found it\n");
+				printf("found it Close this connection\n");
+				close(clientConnectedFd);
 			}
 		} else if( strcmp(type, "CON") == 0) {
 			printf("CON\n");
+			printf("chanId: %sEND\n", chanId);
+			int index;
+			for( index = 0; index < MAX_ROOMS; index++) {
+				if( strcmp(room[index], chanId) == 0)
+					break;
+			}
+
+			if( index != MAX_ROOMS ) {
+				printf("Found a exsiting connection\n");
+			} else {
+				printf("No connection found. Exit.\n");
+			}
+
 		} else {
 			printf(" Not a valid command exit client gracefully.\n");
 		}
