@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     FD_SET(STDIN, &readfds);
 
 
-	if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) 
+	if( select(socketfd + 1, &readfds, NULL, NULL, NULL) < 0 ) 
 		perror("Error: ");
 
 	while(1) {
