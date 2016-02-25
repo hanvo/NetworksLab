@@ -6,7 +6,7 @@
 
 #define MAX_ROOMS 10
 #define LENGTH_OF_MSG 10
-#define BUFF_SIZE 1025
+#define BUFF_SIZE 1024
 
 
 int findChanIdLocation(char, char);
