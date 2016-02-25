@@ -5,12 +5,16 @@
 #include <string.h>
 #include <netdb.h> // Gethostbyname
 
+#define STDIN 0
+#define BUFF_SIZE 1024
+
 char* makeMessage(char*, char*);
+int readln(char *, int);
 
 int main(int argc, char *argv[]) 
 {
 	int socketfd;
-
+	fd_set readfds;
 	if ( argc != 5 ) {
 		printf("Not enough args.\n");
 		exit(1);
@@ -64,6 +68,31 @@ int main(int argc, char *argv[])
 	printf("sizeof(msg): %d\n", (int)strlen(msg));
 	if(send(socketfd, msg, strlen(msg), 0) < 0 ) 
 		perror("Error: ");
+
+    FD_ZERO(&readfds);
+    FD_SET(socketfd, &readfds);
+    FD_SET(STDIN, &readfds);
+
+
+	if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) 
+		perror("Error: ");
+
+	while(1) {
+		if(FD_ISSET(socketfd, &readfds)) {
+			char recvBuff[BUFF_SIZE];
+			int length = recv(socketfd, recvBuff, BUFF_SIZE, 0);
+			printf("recv: %s",recvBuff);
+		}
+		if(FD_ISSET(STDIN, &readfds)) {
+			char buff[BUFF_SIZE];
+			int len;
+			while( (len = readln(buff, BUFF_SIZE)) > 0) {
+				buff[len] = '\0';
+				if( send(socketfd, buff, len, 0) < 0 )
+					perror("error:");
+			}
+		}
+	}
 
 
 	printf("Closing Connection \n");

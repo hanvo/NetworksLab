@@ -6,6 +6,8 @@
 
 #define MAX_ROOMS 10
 #define LENGTH_OF_MSG 10
+#define BUFF_SIZE 1024
+
 
 int findChanIdLocation(char, char);
 
@@ -28,6 +30,12 @@ int main(int argc, char *argv[])
 		perror("Error: ");
 		exit(1);
 	}
+
+	//In cases where I shut my server before my client 
+	//I would get locked out of my port. THis code allows me to reconnect to same port
+	//following that mistake.
+	int optval = 1;
+	setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval, sizeof( int ) );
 
 	//Step 2 - Bind on to the socket 
 	struct sockaddr_in serverAddr;
@@ -72,11 +80,12 @@ int main(int argc, char *argv[])
 		//Step 6 - Parse out between ADV CON 
 		char* type = strtok(recBuff, " ");
 
-		char chanId[10];
+		char chanId[11];
 		int counter;
 		for(counter = 0; counter < 10; counter++) {
 			chanId[counter] = recBuff[counter + 4];
 		}
+		chanId[10] = '\0';
 
 		if( strcmp(type, "ADV") == 0) {			
 			//Checking if ADV Channel ID already exists 
@@ -103,6 +112,7 @@ int main(int argc, char *argv[])
 		} else if( strcmp(type, "CON") == 0) {
 			printf("CON\n");
 			printf("chanId: %sEND\n", chanId);
+			printf("chandIdlen: %d", (int)strlen(chanId));
 			int index;
 			for( index = 0; index < MAX_ROOMS; index++) {
 				if( strcmp(room[index], chanId) == 0)
@@ -110,24 +120,47 @@ int main(int argc, char *argv[])
 			}
 			if( index != MAX_ROOMS ) {
 				printf("Found a exsiting connection\n");
+				int advfd = clientFds[index];
 				int pid;
 				if( (pid = fork()) == -1 ) {
 					close(clientConnectedFd);
 				} else if( pid == 0 ) {
 					printf("Child\n");
-					//this is where the communication between two people happens
-					exit(0);
+					fd_set readfds;
+					FD_ZERO(&readfds);
+					FD_SET(clientConnectedFd, &readfds);
+					FD_SET(advfd, &readfds);
+
+					if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) 
+						perror("Error: ");
+
+					while(1) {
+						if(FD_ISSET(clientConnectedFd, &readfds)) {
+							printf("THIS ONE!\n");
+							char recvBuff[BUFF_SIZE];
+							int length = recv(clientConnectedFd, recvBuff, BUFF_SIZE, 0);
+							recvBuff[length] = '\0';
+							if( send(advfd, recvBuff, BUFF_SIZE, 0) < 0)
+								perror("Error: ");
+						}
+						if(FD_ISSET(advfd, &readfds)) {
+							printf("AYLO\n");
+							char recvBuff[BUFF_SIZE];
+							int length = recv(advfd, recvBuff, BUFF_SIZE, 0);
+							recvBuff[length] = '\0';
+							if( send(clientConnectedFd, recvBuff, BUFF_SIZE, 0) < 0)
+								perror("Error: ");
+						}
+					}
+
 				} else if( pid > 0 ) {
 					//parent process go remove stuff from the arrays 
 					printf("Parent\n");
 					printf("BEFORE room[index]: %sENDn", room[index]);
-
 					room[index][0] = '\0';
 					clientFds[index] = -1;
-
 					printf("room[index]: %sENDn", room[index]);
 					printf("clientFds[index]: %d\n", clientFds[index]);
-
 				}
 
 			} else {
