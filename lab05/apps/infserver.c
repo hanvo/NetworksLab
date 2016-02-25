@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
 				}
 				strncpy(room[freeSpot], chanId, sizeof(chanId));
 				clientFds[freeSpot] = clientConnectedFd;
+				printf("ADV file descriptor is: %d\n", clientFds[freeSpot]);
 
 			} else{
 				//If someone req to ADV to same connection just close it. 
@@ -126,6 +127,7 @@ int main(int argc, char *argv[])
 			if( index != MAX_ROOMS ) {
 				printf("Found a exsiting connection\n");
 				int advfd = clientFds[index];
+				printf("ADVFD: %d\n", advfd);
 				int pid;
 				//Begin the Forking Process
 				//Child - Will handle the communciation between ADV and CON
@@ -151,7 +153,6 @@ int main(int argc, char *argv[])
 							printf("THIS ONE!\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recv(clientConnectedFd, recvBuff, BUFF_SIZE, 0);
-							//recvBuff[length] = '\0';
 							if( send(advfd, recvBuff, length, 0) < 0)
 								perror("Error: ");
 						}
@@ -160,7 +161,6 @@ int main(int argc, char *argv[])
 							printf("AYLO\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recv(advfd, recvBuff, BUFF_SIZE, 0);
-							//recvBuff[length] = '\0';
 							if( send(clientConnectedFd, recvBuff, length, 0) < 0)
 								perror("Error: ");
 						}

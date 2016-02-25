@@ -82,7 +82,11 @@ int main(int argc, char *argv[])
 		if(FD_ISSET(socketfd, &readfds) ) {
 			char recvBuff[BUFF_SIZE];
 			int length = recvline(socketfd, recvBuff, BUFF_SIZE); 
-			write(STDOUT_FILENO, recvBuff, length);
+			if( length != 0 ) {
+				write(STDOUT_FILENO, recvBuff, length);
+			} else {
+				close( socketfd );
+			}
 		}
 		//If it is coming from standard in we want to read from the input and send it
 		//off to the client
@@ -90,7 +94,6 @@ int main(int argc, char *argv[])
 			char buff[BUFF_SIZE];
 			int len;
 			while( (len = readln(buff, BUFF_SIZE)) > 0) {
-				buff[len] = '\0';
 				if( send(socketfd, buff, len, 0) < 0 )
 					perror("error:");
 			}
