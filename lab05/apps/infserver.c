@@ -6,7 +6,7 @@
 
 #define MAX_ROOMS 10
 #define LENGTH_OF_MSG 10
-#define BUFF_SIZE 1024
+#define BUFF_SIZE 1025
 
 
 int findChanIdLocation(char, char);
@@ -151,9 +151,8 @@ int main(int argc, char *argv[])
 							printf("THIS ONE!\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recv(clientConnectedFd, recvBuff, BUFF_SIZE, 0);
-							recvBuff[length] = '\0';
-							printf("THIS ONE: %s", recvBuff);
-							if( send(advfd, recvBuff, BUFF_SIZE, 0) < 0)
+							//recvBuff[length] = '\0';
+							if( send(advfd, recvBuff, length, 0) < 0)
 								perror("Error: ");
 						}
 						//If it is coming from teh ADV client take in the message and redirect it to CON client
@@ -161,9 +160,8 @@ int main(int argc, char *argv[])
 							printf("AYLO\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recv(advfd, recvBuff, BUFF_SIZE, 0);
-							recvBuff[length] = '\0';
-							printf("AYLO: %s", recvBuff);
-							if( send(clientConnectedFd, recvBuff, BUFF_SIZE, 0) < 0)
+							//recvBuff[length] = '\0';
+							if( send(clientConnectedFd, recvBuff, length, 0) < 0)
 								perror("Error: ");
 						}
 					}

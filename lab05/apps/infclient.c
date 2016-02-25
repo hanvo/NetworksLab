@@ -4,12 +4,14 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <netdb.h> // Gethostbyname
+#include <unistd.h>
 
 #define STDIN 0
 #define BUFF_SIZE 1024
 
 char* makeMessage(char*, char*);
 int readln(char *, int);
+int recvline(int , char *, int );
 
 int main(int argc, char *argv[]) 
 {
@@ -79,8 +81,8 @@ int main(int argc, char *argv[])
 		//If it is coming from socket we know to display it to STDOUT
 		if(FD_ISSET(socketfd, &readfds) ) {
 			char recvBuff[BUFF_SIZE];
-			int length = recv(socketfd, recvBuff, BUFF_SIZE, 0);
-			printf("recv: %s",recvBuff);
+			int length = recvline(socketfd, recvBuff, BUFF_SIZE); 
+			write(STDOUT_FILENO, recvBuff, length);
 		}
 		//If it is coming from standard in we want to read from the input and send it
 		//off to the client
@@ -113,4 +115,24 @@ char* makeMessage(char* type, char* id){
 			strncat(msg, " ", sizeof(char));
 	}
 	return msg;
+}
+
+int recvline(int fd, char *buff, int buffsz)
+{
+	char	*bp = buff, c;
+	int	n;
+
+	while(bp - buff < buffsz && 
+	      (n = recv(fd, bp, 1, 0)) > 0) {
+		if (*bp++ == '\n')
+			return (bp - buff);
+	}
+
+	if (n < 0)
+		return -1;
+
+	if (bp - buff == buffsz)
+		while (recv(fd, &c, 1, 0) > 0 && c != '\n');
+
+	return (bp - buff);
 }
