@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
 {
 	int socketfd, clientConnectedFd;
 
-
 	if ( argc != 2 ) {
 		printf("Not enough args.\n");
 		exit(1);
@@ -37,12 +36,11 @@ int main(int argc, char *argv[])
 	int optval = 1;
 	setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval, sizeof( int ) );
 
-	//Step 2 - Bind on to the socket 
+	//Step 2 - Bind on to the Master socket 
 	struct sockaddr_in serverAddr;
 	memset( &serverAddr, 0, sizeof( serverAddr ) );
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = (u_short)port;
-
 	int bindfd = bind( socketfd, (struct sockaddr *) &serverAddr, sizeof( serverAddr ) );
 	if( bindfd < 0 ) {
 		perror("Error: ");
@@ -55,9 +53,15 @@ int main(int argc, char *argv[])
 		perror("Error: ");
 	}
 
+
+	/* Book Keeping Arrays
+	* Room - Channel Id storage
+	* ClientFds - Channel ID's accepted_File_Descriptor 
+	* Indices will be the same from Room and ClientFDs
+	*/
 	char room[MAX_ROOMS][LENGTH_OF_MSG];
 	int clientFds[MAX_ROOMS];
-	short numRoomsFilled = 0;
+	//short numRoomsFilled = 0;
 
 	memset(room, '\0', sizeof(room[0][0])* MAX_ROOMS * LENGTH_OF_MSG);
 	memset(clientFds, -1 , sizeof(int));
@@ -72,12 +76,12 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 
-		//Step 5 - Rec message
+		//Step 5 - Rec the initial message of [Type] [ChannelId]
 		char recBuff[14];
 		if( recv(clientConnectedFd , recBuff, 14, 0) < 0 )
 			perror("Error: ");
 			
-		//Step 6 - Parse out between ADV CON 
+		//Step 6 - Parse out between [Type] [ChannelId] 
 		char* type = strtok(recBuff, " ");
 
 		char chanId[11];
@@ -94,6 +98,7 @@ int main(int argc, char *argv[])
 				if( strcmp(room[index], chanId) == 0)
 					break;
 			}
+
 			//If it cycles and finds nothing it will add it to room array and 
 			// in clientFds array to keep track when something wants to pair up
 			if(index == MAX_ROOMS) {
@@ -105,12 +110,14 @@ int main(int argc, char *argv[])
 				}
 				strncpy(room[freeSpot], chanId, sizeof(chanId));
 				clientFds[freeSpot] = clientConnectedFd;
+
 			} else{
 				//If someone req to ADV to same connection just close it. 
 				printf("Closed a client\n");
 				close(clientConnectedFd);
 			}
 		} else if( strcmp(type, "CON") == 0) {
+			//Check if there are any matching chanIds
 			int index;
 			for( index = 0; index < MAX_ROOMS; index++) {
 				if( strcmp(room[index], chanId) == 0)
@@ -120,39 +127,46 @@ int main(int argc, char *argv[])
 				printf("Found a exsiting connection\n");
 				int advfd = clientFds[index];
 				int pid;
+				//Begin the Forking Process
+				//Child - Will handle the communciation between ADV and CON
+				//Parent - will remove the instances from the two book keeping arrays
 				if( (pid = fork()) == -1 ) {
 					printf("fork broke\n");
 					close(clientConnectedFd);
 				} else if( pid == 0 ) {
 					printf("Child\n");
-					fd_set readfds;
-					FD_ZERO(&readfds);
-					FD_SET(clientConnectedFd, &readfds);
-					FD_SET(advfd, &readfds);
-
-					if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) 
-						perror("Error: ");
-
 					while(1) {
+						//Start the Select Call Setup
+						//It will look for ClientConnectedFd (CON Client) and it will pull out the advfd(ADV client)
+						//and set up the message passage between the two clients
+						fd_set readfds;
+						FD_ZERO(&readfds);
+						FD_SET(clientConnectedFd, &readfds);
+						FD_SET(advfd, &readfds);
+						if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) 
+							perror("Error: ");
+
+						//If it is coming from the CON client redirect the message to ADVFD
 						if(FD_ISSET(clientConnectedFd, &readfds)) {
 							printf("THIS ONE!\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recv(clientConnectedFd, recvBuff, BUFF_SIZE, 0);
 							recvBuff[length] = '\0';
+							printf("THIS ONE: %s", recvBuff);
 							if( send(advfd, recvBuff, BUFF_SIZE, 0) < 0)
 								perror("Error: ");
 						}
+						//If it is coming from teh ADV client take in the message and redirect it to CON client
 						if(FD_ISSET(advfd, &readfds)) {
 							printf("AYLO\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recv(advfd, recvBuff, BUFF_SIZE, 0);
 							recvBuff[length] = '\0';
-							printf("recvBuff: %s", recvBuff);
+							printf("AYLO: %s", recvBuff);
 							if( send(clientConnectedFd, recvBuff, BUFF_SIZE, 0) < 0)
 								perror("Error: ");
 						}
 					}
-
 				} else if( pid > 0 ) {
 					//parent process go remove stuff from the arrays 
 					room[index][0] = '\0';
@@ -160,9 +174,11 @@ int main(int argc, char *argv[])
 				}
 			} else {
 				printf("No connection found. Exit.\n");
+				close(clientConnectedFd);
 			}
 		} else {
 			printf(" Not a valid command exit client gracefully.\n");
+			close(clientConnectedFd);
 		}
 	}
 	return 0;

@@ -57,32 +57,33 @@ int main(int argc, char *argv[])
 	host = gethostbyname( server_hostName );
 	addr_list = (struct in_addr **)host->h_addr_list;
 	addr.s_addr = addr_list[0]->s_addr;
-
 	serverAddr.sin_addr = addr;
 
+	//Step 3 - Connect to the Server
 	if( connect( socketfd, (struct sockaddr *) &serverAddr, sizeof( struct sockaddr ) ) < 0) {
 		perror("Error: ");
 	}
 
-	printf("Sending: %s",msg);
-	printf("sizeof(msg): %d\n", (int)strlen(msg));
+	//Step 4 - Send the initial message of ADV/CON
 	if(send(socketfd, msg, strlen(msg), 0) < 0 ) 
 		perror("Error: ");
 
-    FD_ZERO(&readfds);
-    FD_SET(socketfd, &readfds);
-    FD_SET(STDIN, &readfds);
-
-
-	if( select(socketfd + 1, &readfds, NULL, NULL, NULL) < 0 ) 
-		perror("Error: ");
-
 	while(1) {
-		if(FD_ISSET(socketfd, &readfds)) {
+		//Step 5 - Setup Select Function. We want socket and STDIN communication
+	    FD_ZERO(&readfds);
+	    FD_SET(socketfd, &readfds);
+	    FD_SET(STDIN, &readfds);
+		if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) 
+			perror("Error: ");
+
+		//If it is coming from socket we know to display it to STDOUT
+		if(FD_ISSET(socketfd, &readfds) ) {
 			char recvBuff[BUFF_SIZE];
 			int length = recv(socketfd, recvBuff, BUFF_SIZE, 0);
 			printf("recv: %s",recvBuff);
 		}
+		//If it is coming from standard in we want to read from the input and send it
+		//off to the client
 		if(FD_ISSET(STDIN, &readfds)) {
 			char buff[BUFF_SIZE];
 			int len;
@@ -94,13 +95,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-
 	printf("Closing Connection \n");
 	free(msg);
 	close(socketfd);
 	return 0;
 }
 
+//Helper method to take Type of Message and pad the channel id together
 char* makeMessage(char* type, char* id){
 	char *msg = (char*) malloc(sizeof(char) * 14);
 	strncpy(msg, type, strlen(type));
