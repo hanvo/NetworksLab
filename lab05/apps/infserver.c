@@ -8,8 +8,7 @@
 #define LENGTH_OF_MSG 10
 #define BUFF_SIZE 1024
 
-
-int findChanIdLocation(char, char);
+int recvline(int , char *, int );
 
 int main(int argc, char *argv[]) 
 {
@@ -152,17 +151,25 @@ int main(int argc, char *argv[])
 						if(FD_ISSET(clientConnectedFd, &readfds)) {
 							printf("THIS ONE!\n");
 							char recvBuff[BUFF_SIZE];
-							int length = recv(clientConnectedFd, recvBuff, BUFF_SIZE, 0);
-							if( send(advfd, recvBuff, length, 0) < 0)
+							int length = recvline(clientConnectedFd, recvBuff, BUFF_SIZE); 
+							//int length = recv(clientConnectedFd, recvBuff, BUFF_SIZE, 0);
+							int sendLen;
+							if( (sendLen = send(advfd, recvBuff, length, 0)) < 0) {
 								perror("Error: ");
+							}
+							printf("sendLen: %d\n", sendLen);
 						}
 						//If it is coming from teh ADV client take in the message and redirect it to CON client
 						if(FD_ISSET(advfd, &readfds)) {
 							printf("AYLO\n");
 							char recvBuff[BUFF_SIZE];
-							int length = recv(advfd, recvBuff, BUFF_SIZE, 0);
-							if( send(clientConnectedFd, recvBuff, length, 0) < 0)
+							int length = recvline(advfd, recvBuff, BUFF_SIZE); 
+							//int length = recv(advfd, recvBuff, BUFF_SIZE, 0);
+							int sendLen;
+							if( (sendLen = send(clientConnectedFd, recvBuff, length, 0)) < 0) {
 								perror("Error: ");
+							}
+							printf("sendLen: %d\n", sendLen);
 						}
 					}
 				} else if( pid > 0 ) {

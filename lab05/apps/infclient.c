@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 		//off to the client
 		if(FD_ISSET(STDIN, &readfds)) {
 			char buff[BUFF_SIZE];
-			int len;
-			while( (len = readln(buff, BUFF_SIZE)) > 0) {
+			int len = readln(buff, BUFF_SIZE);
+			if(len > 0 ) {
 				if( send(socketfd, buff, len, 0) < 0 )
 					perror("error:");
 			}
@@ -120,22 +120,3 @@ char* makeMessage(char* type, char* id){
 	return msg;
 }
 
-int recvline(int fd, char *buff, int buffsz)
-{
-	char	*bp = buff, c;
-	int	n;
-
-	while(bp - buff < buffsz && 
-	      (n = recv(fd, bp, 1, 0)) > 0) {
-		if (*bp++ == '\n')
-			return (bp - buff);
-	}
-
-	if (n < 0)
-		return -1;
-
-	if (bp - buff == buffsz)
-		while (recv(fd, &c, 1, 0) > 0 && c != '\n');
-
-	return (bp - buff);
-}
