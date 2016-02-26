@@ -18,7 +18,6 @@ int main(int argc, char *argv[])
 	int socketfd;
 	fd_set readfds;
 	if ( argc != 5 ) {
-		printf("Not enough args.\n");
 		exit(1);
 	}
 

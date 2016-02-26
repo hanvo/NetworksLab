@@ -15,12 +15,10 @@ int main(int argc, char *argv[])
 	int socketfd, clientConnectedFd;
 
 	if ( argc != 2 ) {
-		printf("Not enough args.\n");
 		exit(1);
 	}
 
 	int port = atoi(argv[1]);
-	printf("Port: %d \n", port);
 
 	//Step 1: Start the socket
 	socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -130,7 +128,6 @@ int main(int argc, char *argv[])
 				//Child - Will handle the communciation between ADV and CON
 				//Parent - will remove the instances from the two book keeping arrays
 				if( (pid = fork()) == -1 ) {
-					printf("fork broke\n");
 					close(clientConnectedFd);
 				} else if( pid == 0 ) {
 					close(socketfd);
