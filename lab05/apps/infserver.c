@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define MAX_ROOMS 10
-#define LENGTH_OF_MSG 10
+#define LENGTH_OF_MSG 11
 #define BUFF_SIZE 1024
 
 int recvline(int , char *, int );
@@ -93,9 +93,7 @@ int main(int argc, char *argv[])
 		if( strcmp(type, "ADV") == 0) {			
 			//Checking if ADV Channel ID already exists 
 			int index;
-
 			for( index = 0; index < MAX_ROOMS; index++) {
-				printf("comparing %s to %sEND\n",room[index],chanId);
 				if( strcmp(room[index], chanId) == 0)
 					break;
 			}
@@ -109,7 +107,7 @@ int main(int argc, char *argv[])
 						break;
 					}
 				}
-				strncpy(room[freeSpot], chanId, sizeof(chanId));
+				strncpy(room[freeSpot], chanId, 10);
 				clientFds[freeSpot] = clientConnectedFd;
 			} else{
 				//If someone req to ADV to same connection just close it. 
@@ -119,9 +117,11 @@ int main(int argc, char *argv[])
 		} else if( strcmp(type, "CON") == 0) {
 			//Check if there are any matching chanIds
 			int index;
+
 			for( index = 0; index < MAX_ROOMS; index++) {
-				if( strcmp(room[index], chanId) == 0)
+				if( strcmp(room[index], chanId) == 0) {
 					break;
+				}
 			}
 			if( index != MAX_ROOMS ) {
 				int advfd = clientFds[index];
