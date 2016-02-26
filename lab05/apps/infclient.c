@@ -75,8 +75,10 @@ int main(int argc, char *argv[])
 	    FD_ZERO(&readfds);
 	    FD_SET(socketfd, &readfds);
 	    FD_SET(STDIN, &readfds);
-		if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) 
-			perror("Error: ");
+		if( select(FD_SETSIZE, &readfds, NULL, NULL, NULL) < 0 ) {
+			//perror("Select: ");
+			exit(1);
+		}
 
 		//If it is coming from socket we know to display it to STDOUT
 		if(FD_ISSET(socketfd, &readfds) ) {
@@ -95,7 +97,9 @@ int main(int argc, char *argv[])
 			int len = readln(buff, BUFF_SIZE);
 			if(len > 0 ) {
 				if( send(socketfd, buff, len, 0) < 0 )
-					perror("error:");
+					perror("Send:");
+			} else {
+				close(socketfd);
 			}
 		}
 	}

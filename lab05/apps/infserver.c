@@ -93,7 +93,9 @@ int main(int argc, char *argv[])
 		if( strcmp(type, "ADV") == 0) {			
 			//Checking if ADV Channel ID already exists 
 			int index;
+
 			for( index = 0; index < MAX_ROOMS; index++) {
+				printf("comparing %s to %sEND\n",room[index],chanId);
 				if( strcmp(room[index], chanId) == 0)
 					break;
 			}
@@ -109,8 +111,6 @@ int main(int argc, char *argv[])
 				}
 				strncpy(room[freeSpot], chanId, sizeof(chanId));
 				clientFds[freeSpot] = clientConnectedFd;
-				printf("ADV file descriptor is: %d\n", clientFds[freeSpot]);
-
 			} else{
 				//If someone req to ADV to same connection just close it. 
 				printf("Closed a client\n");
@@ -124,9 +124,7 @@ int main(int argc, char *argv[])
 					break;
 			}
 			if( index != MAX_ROOMS ) {
-				printf("Found a exsiting connection\n");
 				int advfd = clientFds[index];
-				printf("ADVFD: %d\n", advfd);
 				int pid;
 				//Begin the Forking Process
 				//Child - Will handle the communciation between ADV and CON
@@ -135,7 +133,7 @@ int main(int argc, char *argv[])
 					printf("fork broke\n");
 					close(clientConnectedFd);
 				} else if( pid == 0 ) {
-					printf("Child\n");
+					close(socketfd);
 					while(1) {
 						//Start the Select Call Setup
 						//It will look for ClientConnectedFd (CON Client) and it will pull out the advfd(ADV client)
@@ -149,40 +147,42 @@ int main(int argc, char *argv[])
 
 						//If it is coming from the CON client redirect the message to ADVFD
 						if(FD_ISSET(clientConnectedFd, &readfds)) {
-							printf("THIS ONE!\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recvline(clientConnectedFd, recvBuff, BUFF_SIZE); 
-							//int length = recv(clientConnectedFd, recvBuff, BUFF_SIZE, 0);
-							int sendLen;
-							if( (sendLen = send(advfd, recvBuff, length, 0)) < 0) {
-								perror("Error: ");
+							if( length == 0 ) {
+								exit(1);
+							} else {
+								int sendLen;
+								if( (sendLen = send(advfd, recvBuff, length, 0)) < 0) {
+									perror("Error: ");
+								}
 							}
-							printf("sendLen: %d\n", sendLen);
 						}
-						//If it is coming from teh ADV client take in the message and redirect it to CON client
+						//If it is coming from the ADV client take in the message and redirect it to CON client
 						if(FD_ISSET(advfd, &readfds)) {
-							printf("AYLO\n");
 							char recvBuff[BUFF_SIZE];
 							int length = recvline(advfd, recvBuff, BUFF_SIZE); 
-							//int length = recv(advfd, recvBuff, BUFF_SIZE, 0);
-							int sendLen;
-							if( (sendLen = send(clientConnectedFd, recvBuff, length, 0)) < 0) {
-								perror("Error: ");
+							if( length == 0 ) {
+								exit(1);
+							} else {
+								int sendLen;
+								if( (sendLen = send(clientConnectedFd, recvBuff, length, 0)) < 0) {
+									perror("Error: ");
+								}
 							}
-							printf("sendLen: %d\n", sendLen);
 						}
 					}
 				} else if( pid > 0 ) {
 					//parent process go remove stuff from the arrays 
 					room[index][0] = '\0';
 					clientFds[index] = -1;
+					close(advfd);
+					close(clientConnectedFd);				
 				}
 			} else {
-				printf("No connection found. Exit.\n");
 				close(clientConnectedFd);
 			}
 		} else {
-			printf(" Not a valid command exit client gracefully.\n");
 			close(clientConnectedFd);
 		}
 	}
