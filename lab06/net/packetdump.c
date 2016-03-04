@@ -14,9 +14,9 @@ void	packetdump ( struct	netpacket *pptr )
 	int counter;
 	for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
 		if( (counter + 1) == ETH_ADDR_LEN) {
-			kprintf("%02x", *(pptr->net_ethdst + counter));
+			kprintf("%02x", *(pptr->net_ethsrc + counter));
 		} else {
-			kprintf("%02x:", *(pptr->net_ethdst + counter));
+			kprintf("%02x:", *(pptr->net_ethsrc + counter));
 		}
 	}
 
@@ -24,9 +24,9 @@ void	packetdump ( struct	netpacket *pptr )
 
 	for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
 		if( (counter + 1) == ETH_ADDR_LEN) {
-			kprintf("%02x, ", *(pptr->net_ethsrc + counter));
+			kprintf("%02x, ", *(pptr->net_ethdst + counter));
 		} else {
-			kprintf("%02x:", *(pptr->net_ethsrc + counter));
+			kprintf("%02x:", *(pptr->net_ethdst + counter));
 		}
 	}
 
@@ -41,13 +41,15 @@ void	packetdump ( struct	netpacket *pptr )
 			kprintf("IPv6, ");
 			break;
 		default:
+			kprintf("0x%04x,  ",ntohs(pptr->net_ethtype));
 			break;
 	}
 
-	kprintf("\n ");
+	for(counter = 0; counter < 15; counter++) {
+		kprintf("%02x ", *(pptr->net_udpdata + counter));
+	}
 
-	//kprintf("pptr->net_ethtype: %d\n", pptr->net_ethtype);
+	kprintf("\n");
 
-	//kprintf("Ethernet Type: %x\n", pptr->net_ethtype);
 	return;
 }
