@@ -75,8 +75,8 @@ process	netin ()
 
 	/* Do forever: read a packet from the network and process */
 
+	//Enter Promis Mode
 	control(ETHER0, ETH_CTRL_PROMISC_ENABLE, 0, 0);
-
 
 	while(1) {
 
@@ -93,7 +93,6 @@ process	netin ()
 
 		/* Lab06 - PacketDump */
 		packetdump(pkt);
-
 
 		/* Convert Ethernet Type to host order */
 

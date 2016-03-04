@@ -5,7 +5,9 @@
 
 process	main(void)
 {   
+	//Start the network - Lab06
 	netstart();
+	
 	recvclr();
 	resume(create(shell, 8192, 50, "shell", 1, CONSOLE));
 

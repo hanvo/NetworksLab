@@ -10,7 +10,7 @@
 
 void	packetdump ( struct	netpacket *pptr )
 {
-	/* Put your code here */	
+	//Printing the Source Mac Address	
 	int counter;
 	for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
 		if( (counter + 1) == ETH_ADDR_LEN) {
@@ -22,6 +22,7 @@ void	packetdump ( struct	netpacket *pptr )
 
 	kprintf(" -> ");
 
+	//Printing the Dest Mac Address
 	for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
 		if( (counter + 1) == ETH_ADDR_LEN) {
 			kprintf("%02x, ", *(pptr->net_ethdst + counter));
@@ -30,6 +31,7 @@ void	packetdump ( struct	netpacket *pptr )
 		}
 	}
 
+	//Figuring out what ETHType it is
 	switch(ntohs(pptr->net_ethtype)) {
 		case ETH_ARP:
 			kprintf("ARP, ");
@@ -45,11 +47,15 @@ void	packetdump ( struct	netpacket *pptr )
 			break;
 	}
 
+	//Print out the first 15 bits of the load
 	for(counter = 0; counter < 15; counter++) {
-		kprintf("%02x ", *(pptr->net_udpdata + counter));
+		if( counter != 14 ) {
+			kprintf("%02x ", *(pptr->net_udpdata + counter));
+		} else {
+			kprintf("%02x", *(pptr->net_udpdata + counter));
+		}
 	}
 
 	kprintf("\n");
-
 	return;
 }
