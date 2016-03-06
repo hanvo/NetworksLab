@@ -49,12 +49,12 @@ void	packetdump ( struct	netpacket *pptr )
 
 	//Print out the first 15 bits of the load
 	for(counter = 0; counter < 15; counter++) {
-		if( counter != 14 ) {
-			kprintf("%02x ", *(pptr->net_udpdata + counter));
+		if( (counter + 1 ) == 15 ) {
+			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
 		} else {
-			kprintf("%02x", *(pptr->net_udpdata + counter));
+			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
 		}
-	}
+	} 
 
 	kprintf("\n");
 	return;
