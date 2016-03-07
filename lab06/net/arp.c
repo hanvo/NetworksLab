@@ -124,6 +124,10 @@ status	arp_resolve (
 	msg = recvclr();
 	for (i=0; i<ARP_RETRY; i++) {
 		write(ETHER0, (char *)&apkt, sizeof(struct arppacket));
+
+		/*Lab 06 - Extra Credit Another time when Write(ETHER0) you should sniff the packet */
+		packetdump_out((struct netpacket *) &apkt);
+		
 		msg = recvtime(ARP_TIMEOUT);
 		if (msg == TIMEOUT) {
 			continue;
@@ -286,6 +290,10 @@ void	arp_in (
 	/* Send the reply */
 
 	write(ETHER0, (char *)&apkt, sizeof(struct arppacket));
+
+	/* Lab 06 Extra Credit Packet Send out */
+	packetdump_out((struct netpacket *) &apkt);
+
 	freebuf((char *)pktptr);
 	restore(mask);
 	return;
