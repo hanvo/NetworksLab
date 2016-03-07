@@ -347,6 +347,9 @@ extern	syscall	open(did32, char *, char *);
 /* in file packetdump.c */
 extern	void	packetdump(struct netpacket *);
 
+/* in file packetdump.c */
+extern	void	packetdump_out( struct netpacket *pptr );
+
 /* in file panic.c */
 extern	void	panic(char *);
 

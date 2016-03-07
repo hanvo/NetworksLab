@@ -271,6 +271,9 @@ status	ip_out(
 	retval = write(ETHER0, (char*)pktptr, pktlen);
 	freebuf((char *)pktptr);
 
+	/* Lab06 - Extra Credit */
+	packetdump_out(pktptr);
+
 	if (retval == SYSERR) {
 		return SYSERR;
 	} else {
