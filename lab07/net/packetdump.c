@@ -8,6 +8,18 @@
  *------------------------------------------------------------------------
  */
 
+void printPayload( struct netpacket * pptr ) {
+	//Print out the first 15 bits of the load
+	int counter;
+	for( counter = 0 ; counter < 15 ; counter++) {
+		if( (counter + 1 ) == 15 ) {
+			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
+		} else {
+			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
+		}
+	} 
+}
+
  void ipv4Data(struct netpacket *pptr) {
 
 	//Printing the ETH_SRC
@@ -28,9 +40,8 @@
 	kprintf("%d, ", (pptr->net_ipvh >> 4)&0x0F);
 
 	//Printing the Internet Header Length
-	kprintf("%d, ", (pptr->net_ipvh)&0x0F);
-
-
+	int headerLength = (pptr->net_ipvh)&0x0F;
+	kprintf("%d, ", headerLength);
 
 	//Print the Total Packet Length
 	uint32 convertedPacketLengthHost = htons(pptr->net_iplen);
@@ -52,22 +63,18 @@
 			break;
 	}
 
-	//Print Payload in order of IHL
-	
-
-};
-
-void printPayload( struct netpacket * pptr ) {
-	//Print out the first 15 bits of the load
+	//Print 15 bits of Payload after the IHL
 	int counter;
-	for(counter = 0; counter < 15; counter++) {
-		if( (counter + 1 ) == 15 ) {
+	int actualHeaderLength = headerLength * 4;
+	for( counter = actualHeaderLength ; counter < ( 15 + actualHeaderLength ) ; counter++) {
+		if( (counter + 1 ) == ( 15 + actualHeaderLength) ) {
 			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
 		} else {
 			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
 		}
 	} 
-}
+
+};
 
 void	packetdump ( struct	netpacket *pptr )
 {
