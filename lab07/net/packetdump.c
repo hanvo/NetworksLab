@@ -3,22 +3,10 @@
 #include <xinu.h>
 
 /*------------------------------------------------------------------------
- * packetdump  -  Dumps contents of an Ethernet packet
+ * ipv4Data  -  Dumps contents of the Ipv4 data frame
  * Arg - Pointer to a packet	
  *------------------------------------------------------------------------
  */
-
-void printPayload( struct netpacket * pptr ) {
-	//Print out the first 15 bits of the load
-	int counter;
-	for( counter = 0 ; counter < 15 ; counter++) {
-		if( (counter + 1 ) == 15 ) {
-			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
-		} else {
-			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
-		}
-	} 
-}
 
  void ipv4Data(struct netpacket *pptr) {
 
@@ -66,8 +54,9 @@ void printPayload( struct netpacket * pptr ) {
 	//Print 15 bits of Payload after the IHL
 	int counter;
 	int actualHeaderLength = headerLength * 4;
-	for( counter = actualHeaderLength ; counter < ( 15 + actualHeaderLength ) ; counter++) {
-		if( (counter + 1 ) == ( 15 + actualHeaderLength) ) {
+	int maxReadLength = 15 + actualHeaderLength;
+	for( counter = actualHeaderLength ; counter < maxReadLength ; counter++ ) {
+		if( (counter + 1 ) == maxReadLength ) {
 			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
 		} else {
 			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
@@ -75,6 +64,30 @@ void printPayload( struct netpacket * pptr ) {
 	} 
 
 };
+
+/*------------------------------------------------------------------------
+ * printPayload  -  Helper Method to just dump out first 15 bytes
+ * Arg - Pointer to a packet	
+ *------------------------------------------------------------------------
+ */
+
+void printPayload( struct netpacket * pptr ) {
+	//Print out the first 15 bits of the load
+	int counter;
+	for( counter = 0 ; counter < 15 ; counter++) {
+		if( (counter + 1 ) == 15 ) {
+			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
+		} else {
+			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
+		}
+	} 
+}
+
+/*------------------------------------------------------------------------
+ * packetdump  -  Dumps contents of an Ethernet packet
+ * Arg - Pointer to a packet	
+ *------------------------------------------------------------------------
+ */
 
 void	packetdump ( struct	netpacket *pptr )
 {
