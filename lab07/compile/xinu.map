@@ -527,8 +527,8 @@ Linker script and memory map
  .text          0x000000000010f72a      0x110 binaries/netstart.o
                 0x000000000010f72a                netstart
  .text          0x000000000010f83a      0x48a binaries/packetdump.o
-                0x000000000010f83a                printPayload
-                0x000000000010f8a2                ipv4Data
+                0x000000000010f83a                ipv4Data
+                0x000000000010fa9b                printPayload
                 0x000000000010fb03                packetdump
  .text          0x000000000010fcc4      0x63f binaries/tftp.o
                 0x000000000010fcc4                tftp_send1
