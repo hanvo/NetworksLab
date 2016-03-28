@@ -10,14 +10,17 @@
 
 void packetdump_udp(struct netpacket *pkt) {
 
+	//Source Port
 	kprintf("%d, ", ntohs(pkt->net_udpsport));
 
+	//Dest Port
 	kprintf("%d, ", ntohs(pkt->net_udpdport));
 
+	//CheckSum
 	kprintf("0x%04x, ", ntohs(pkt->net_udpcksum) & 0xffff);
 
-	kprintf("%d", pkt->net_udplen);
-
+	//UDP Length
+	kprintf("%d", ntohs(pkt->net_udplen));
 
 }
 
@@ -31,12 +34,13 @@ void packetdump_arp(struct netpacket *pkt) {
 
 	struct arppacket *arp = (struct arppacket *)pkt;
 
-	if( ntohs(arp->arp_op) == ARP_OP_REQ) {
-		kprintf("REQUEST, ");
-	} else if( ntohs(arp->arp_op) == ARP_OP_RPLY) {
-		kprintf("REPLY, ");
-	} else {
-		kprintf("~~~Error: Arp Packet ID: %d ", arp->arp_op);
+	switch( ntohs(arp->arp_op) ) {
+		case ARP_OP_REQ:
+			kprintf("REQUEST, ");
+			break;
+		case ARP_OP_RPLY:
+			kprintf("REPLY, ");
+			break;
 	}
 
 	//Print out HLEN (ARP hardware address length)
@@ -91,9 +95,9 @@ void packetdump_arp(struct netpacket *pkt) {
 
 void icmpIdSeq(struct netpacket *pkt) {
 	//Id
-	kprintf("id = %d, ", pkt-> net_icident);
+	kprintf("id = %d, ", ntohs(pkt-> net_icident));
 	//Sequence
-	kprintf("seq = %d", pkt->net_icseq);
+	kprintf("seq = %d", ntohs(pkt->net_icseq));
 }
 
 /*------------------------------------------------------------------------
@@ -117,6 +121,11 @@ void packetdump_icmp(struct netpacket *pkt) {
 
 }
 
+/*------------------------------------------------------------------------
+ * ipv4PayLoadPrint  -  Helper to print PayLoad of IPV4 that we don't cover
+ * Arg - HeaderLength, Pointer to a packet	
+ *------------------------------------------------------------------------
+ */
 
 void ipv4PayLoadPrint(uint32 headerLength, struct netpacket *pptr) {
 	//Print 15 bits of Payload after the IHL
@@ -256,6 +265,3 @@ void	packetdump ( struct	netpacket *pptr )
 	kprintf("\n");
 	return;
 }
-
-
-
