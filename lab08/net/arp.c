@@ -124,6 +124,10 @@ status	arp_resolve (
 	msg = recvclr();
 	for (i=0; i<ARP_RETRY; i++) {
 		write(ETHER0, (char *)&apkt, sizeof(struct arppacket));
+
+		//Lab 08 Dump
+		packetdump((struct netpacket *) &apkt);
+
 		msg = recvtime(ARP_TIMEOUT);
 		if (msg == TIMEOUT) {
 			continue;

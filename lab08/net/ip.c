@@ -269,6 +269,10 @@ status	ip_out(
 	/* Send packet over the Ethernet */
 
 	retval = write(ETHER0, (char*)pktptr, pktlen);
+
+	//Lab 08 Dump
+	packetdump(pktptr);
+
 	freebuf((char *)pktptr);
 
 	if (retval == SYSERR) {

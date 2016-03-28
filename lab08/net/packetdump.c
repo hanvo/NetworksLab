@@ -3,6 +3,136 @@
 #include <xinu.h>
 
 /*------------------------------------------------------------------------
+ * packetdump_udp  -  Dumps contents of the UDP data frame
+ * Arg - Pointer to a packet	
+ *------------------------------------------------------------------------
+ */
+
+void packetdump_udp(struct netpacket *pkt) {
+
+	kprintf("%d, ", ntohs(pkt->net_udpsport));
+
+	kprintf("%d, ", ntohs(pkt->net_udpdport));
+
+	kprintf("0x%04x, ", ntohs(pkt->net_udpcksum) & 0xffff);
+
+	kprintf("%d", pkt->net_udplen);
+
+
+}
+
+/*------------------------------------------------------------------------
+ * packetdump_arp  -  Dumps contents of the ARP data frame
+ * Arg - Pointer to a packet	
+ *------------------------------------------------------------------------
+ */
+
+void packetdump_arp(struct netpacket *pkt) {
+
+	struct arppacket *arp = (struct arppacket *)pkt;
+
+	if( ntohs(arp->arp_op) == ARP_OP_REQ) {
+		kprintf("REQUEST, ");
+	} else if( ntohs(arp->arp_op) == ARP_OP_RPLY) {
+		kprintf("REPLY, ");
+	} else {
+		kprintf("~~~Error: Arp Packet ID: %d ", arp->arp_op);
+	}
+
+	//Print out HLEN (ARP hardware address length)
+	kprintf("%d, ", arp->arp_hlen);
+
+	//Print Out PLEN (ARP protocol address length)
+	kprintf("%d, ", arp->arp_plen);
+
+	//Printing the Source ETH_SRC
+	uint32 convertedSourceIP = htonl(arp->arp_sndpa);
+	kprintf("%d.%d.%d.%d", (convertedSourceIP >> 24)&0xff, 
+		(convertedSourceIP >> 16)&0xff, (convertedSourceIP >> 8)&0xff,
+		(convertedSourceIP)&0xff );
+
+	kprintf("[");
+
+	//Printing the Dest Mac Address
+	int counter;
+	for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
+		if( (counter + 1) == ETH_ADDR_LEN) {
+			kprintf("%02x]", *(arp->arp_ethsrc + counter));
+		} else {
+			kprintf("%02x:", *(arp->arp_ethsrc + counter));
+		}
+	}
+
+	kprintf(" -> ");
+
+	//Printing the ETH_DEST
+	uint32 convertedDestIP = htonl(arp->arp_tarpa);
+	kprintf("%d.%d.%d.%d", (convertedDestIP >> 24)&0xff, 
+		(convertedDestIP >> 16)&0xff, (convertedDestIP >> 8)&0xff,
+		(convertedDestIP)&0xff );
+	
+	if( ntohs(arp->arp_op) == ARP_OP_RPLY ) {
+		kprintf("[");
+		for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
+			if( (counter + 1) == ETH_ADDR_LEN) {
+				kprintf("%02x]", *(arp->arp_ethdst + counter));
+			} else {
+				kprintf("%02x:", *(arp->arp_ethdst + counter));
+			}
+		}
+	} 
+}
+
+/*------------------------------------------------------------------------
+ * icmpIdSeq  -  Helper function to print just ID and Seq of ICMP
+ * Arg - Pointer to a packet	
+ *------------------------------------------------------------------------
+ */
+
+void icmpIdSeq(struct netpacket *pkt) {
+	//Id
+	kprintf("id = %d, ", pkt-> net_icident);
+	//Sequence
+	kprintf("seq = %d", pkt->net_icseq);
+}
+
+/*------------------------------------------------------------------------
+ * packetdump_icmp  -  Dumps contents of the ICMP data frame
+ * Arg - Pointer to a packet	
+ *------------------------------------------------------------------------
+ */
+
+void packetdump_icmp(struct netpacket *pkt) {
+
+	if( pkt->net_ictype == ICMP_ECHOREPLY) {
+		kprintf( "ECHO_REPLY, " );
+		icmpIdSeq(pkt);
+	} else if ( pkt->net_ictype == ICMP_ECHOREQST) {
+		kprintf( "ECHO_REQUEST, " );
+		icmpIdSeq(pkt);
+	} else {
+		//print type hex
+		kprintf("0x%02x", pkt->net_ictype);
+	}
+
+}
+
+
+void ipv4PayLoadPrint(uint32 headerLength, struct netpacket *pptr) {
+	//Print 15 bits of Payload after the IHL
+	int counter;
+	int actualHeaderLength = headerLength * 4;
+	int maxReadLength = 15 + actualHeaderLength;
+	for( counter = actualHeaderLength ; counter < maxReadLength ; counter++ ) {
+		if( (counter + 1 ) == maxReadLength ) {
+			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
+		} else {
+			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
+		}
+	} 
+}
+
+/*------------------------------------------------------------------------
  * ipv4Data  -  Dumps contents of the Ipv4 data frame
  * Arg - Pointer to a packet	
  *------------------------------------------------------------------------
@@ -39,30 +169,21 @@
 	switch( pptr->net_ipproto ) {
 		case IP_UDP:
 			kprintf("UDP, ");
+			packetdump_udp(pptr);
 			break;
 		case IP_TCP:
 			kprintf("TCP, ");
+			ipv4PayLoadPrint(headerLength, pptr);
 			break;
 		case IP_ICMP:
 			kprintf("ICMP, ");
+			packetdump_icmp(pptr);
 			break;
 		default:
 			kprintf("0x%02x, ", pptr->net_ipproto);
+			ipv4PayLoadPrint(headerLength, pptr);
 			break;
 	}
-
-	//Print 15 bits of Payload after the IHL
-	int counter;
-	int actualHeaderLength = headerLength * 4;
-	int maxReadLength = 15 + actualHeaderLength;
-	for( counter = actualHeaderLength ; counter < maxReadLength ; counter++ ) {
-		if( (counter + 1 ) == maxReadLength ) {
-			kprintf("%02x", *(&(pptr->net_ipvh) + counter) );
-		} else {
-			kprintf("%02x ", *(&(pptr->net_ipvh) + counter) );
-		}
-	} 
-
 };
 
 /*------------------------------------------------------------------------
@@ -116,7 +237,7 @@ void	packetdump ( struct	netpacket *pptr )
 	switch(ntohs(pptr->net_ethtype)) {
 		case ETH_ARP:
 			kprintf("ARP, ");
-			printPayload(pptr);
+			packetdump_arp(pptr);
 			break;
 		case ETH_IP:
 			kprintf("IPv4, ");
@@ -135,4 +256,6 @@ void	packetdump ( struct	netpacket *pptr )
 	kprintf("\n");
 	return;
 }
+
+
 
