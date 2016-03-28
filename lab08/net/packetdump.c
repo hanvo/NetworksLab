@@ -34,6 +34,7 @@ void packetdump_arp(struct netpacket *pkt) {
 
 	struct arppacket *arp = (struct arppacket *)pkt;
 
+	//Checking if its REQUEST OR REPLY 
 	switch( ntohs(arp->arp_op) ) {
 		case ARP_OP_REQ:
 			kprintf("REQUEST, ");
