@@ -57,19 +57,19 @@ void packetdump_arp(struct netpacket *pkt) {
 
 	kprintf("[");
 
-	//Printing the Dest Mac Address
+	//Printing the source Mac Address
 	int counter;
 	for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
 		if( (counter + 1) == ETH_ADDR_LEN) {
-			kprintf("%02x]", *(arp->arp_ethsrc + counter));
+			kprintf("%02x]", *(arp->arp_sndha + counter));
 		} else {
-			kprintf("%02x:", *(arp->arp_ethsrc + counter));
+			kprintf("%02x:", *(arp->arp_sndha + counter));
 		}
 	}
 
 	kprintf(" -> ");
 
-	//Printing the ETH_DEST
+	//Printing the Target ETH_DEST
 	uint32 convertedDestIP = htonl(arp->arp_tarpa);
 	kprintf("%d.%d.%d.%d", (convertedDestIP >> 24)&0xff, 
 		(convertedDestIP >> 16)&0xff, (convertedDestIP >> 8)&0xff,
@@ -79,9 +79,9 @@ void packetdump_arp(struct netpacket *pkt) {
 		kprintf("[");
 		for(counter = 0; counter < ETH_ADDR_LEN; counter++) {
 			if( (counter + 1) == ETH_ADDR_LEN) {
-				kprintf("%02x]", *(arp->arp_ethdst + counter));
+				kprintf("%02x]", *(arp->arp_tarha + counter));
 			} else {
-				kprintf("%02x:", *(arp->arp_ethdst + counter));
+				kprintf("%02x:", *(arp->arp_tarha + counter));
 			}
 		}
 	} 

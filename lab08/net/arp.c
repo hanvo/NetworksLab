@@ -290,6 +290,10 @@ void	arp_in (
 	/* Send the reply */
 
 	write(ETHER0, (char *)&apkt, sizeof(struct arppacket));
+
+	//Lab 08 Dump
+	packetdump((struct netpacket *) &apkt);
+
 	freebuf((char *)pktptr);
 	restore(mask);
 	return;
