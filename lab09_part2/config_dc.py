@@ -41,15 +41,22 @@ class   ConfigDC(app_manager.RyuApp):
     # This method is called by the controller, when all
     # the switches are connected to the controller..
     #
-    # Your task is to fill out this function...
+    # topo is an object of class Topology.
+    # It contains all the switch and host objects and
+    # information related to port numbers, etc.
+    # Refer Section 3.1 in the lab handout for more details
     #
+    # High - Level OverView
+    # - Read the host_tenant_assignments.txt file and store the mapping of hosts to tenant IDs.
+    # - For each pair of hosts,
+    #     If both the hosts belong to the same tenant,
+    #        Add flows in the switches according to sections 4.2 and 4.3
+
     def add_flows_in_switches(self, topo):
+        host_tenant_pair = {}
+        with open('host_tenant_assignments.txt') as ht_file:
+            for line in ht_file:
+               (key, val) = line.split()
+               host_tenant_pair[key] = val
 
-        # topo is an object of class Topology.
-        # It contains all the switch and host objects and
-        # information related to port numbers, etc.
-        # Refer Section 3.1 in the lab handout for more details
-
-        # Fill in your code here..
-        # Delete the line following this comment
-        pass
+        print host_tenant_pair
