@@ -3,6 +3,7 @@ from ryu.topology.switches import Switches
 from ryu.topology import event
 from ryu.controller.handler import set_ev_cls
 from ryu_topology import Topology
+from collections import defaultdict
 
 class   ConfigDC(app_manager.RyuApp):
 
@@ -53,10 +54,14 @@ class   ConfigDC(app_manager.RyuApp):
     #        Add flows in the switches according to sections 4.2 and 4.3
 
     def add_flows_in_switches(self, topo):
-        host_tenant_pair = {}
+        host_tenant_dict = defaultdict(list)
+
         with open('host_tenant_assignments.txt') as ht_file:
             for line in ht_file:
-               (key, val) = line.split()
-               host_tenant_pair[key] = val
+                (host, tenant) = line.split()
+                host_tenant_dict[tenant].append(host)
 
-        print host_tenant_pair
+        print host_tenant_dict
+
+        for host in host_tenant_dict.iteritems()
+            print host
