@@ -54,14 +54,18 @@ class   ConfigDC(app_manager.RyuApp):
     #        Add flows in the switches according to sections 4.2 and 4.3
 
     def add_flows_in_switches(self, topo):
-        host_tenant_dict = defaultdict(list)
+        host_tenant_dict = {}
 
         with open('host_tenant_assignments.txt') as ht_file:
             for line in ht_file:
                 (host, tenant) = line.split()
-                host_tenant_dict[tenant].append(host)
+
+                if tenant in host_tenant_dict:
+                    host_tenant_dict[tenant].append(host)
+                else:
+                        templist = []
+                        templist.append(host)
+                        host_tenant_dict[tenant] = templist
 
         print host_tenant_dict
 
-        for host in host_tenant_dict.iteritems()
-            print host
