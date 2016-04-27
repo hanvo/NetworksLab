@@ -78,6 +78,8 @@ class   ConfigDC(app_manager.RyuApp):
                 start = hostList.index(hostName)
 
                 for connectHost in hostList[start + 1:]:
+                    print hostName + '->' + connectHost
+
                     hostB = topo.hosts[connectHost]
                     # Figure out if they are under the same host 
                     # else go through the stems
@@ -99,66 +101,56 @@ class   ConfigDC(app_manager.RyuApp):
                         }
                         topo.leafSwitches[host.switch].addFlow(flow)
                     else:
-                        print 'Fken case'
-                        # # Leaf to Spine
-                        # inPort, p = topo.ports[host.switch, hostName]
-                        # outPort, p = topo.ports[host.switch, "spine%s" % tenant]
-                        # flow = {
-                        #     'in_port' : inPort,
-                        #     'eth_src' : topo.hosts[hostName].mac,
-                        #     'eth_dst' : topo.hosts[connectHost].mac,
-                        #     'output'  : outPort
-                        # }
-                        # print flow
-                        # topo.leafSwitches[host.switch].addFlow(flow)
-                        # # Reverse 
-                        # flow = {
-                        #     'in_port' : outPort,
-                        #     'eth_src' : topo.hosts[connectHost].mac,
-                        #     'eth_dst' : topo.hosts[hostName].mac,
-                        #     'output'  : inPort
-                        # }
-                        # print flow
-                        # topo.leafSwitches[host.switch].addFlow(flow)
+                        # Host Leaf Switch -> Tenant Spine
+                        inPort, p = topo.ports[hostName, host.switch]
+                        outPort, p = topo.ports[host.switch, 'spine%s' % tenant]
+                        flow = {
+                            'in_port' : inPort,
+                            'eth_src' : topo.hosts[hostName].mac,
+                            'eth_dst' : topo.hosts[connectHost].mac,
+                            'output'  : outPort
+                        }
+                        topo.leafSwitches[host.switch].addFlow(flow)
+                        flow = {
+                            'in_port' : outPort,
+                            'eth_src' : topo.hosts[connectHost].mac,
+                            'eth_dst' : topo.hosts[hostName].mac,
+                            'output'  : inPort
+                        }
+                        topo.leafSwitches[host.switch].addFlow(flow)
 
-                        # # Spine to leaf 
-                        # inPort, p = topo.ports["spine%s" % tenant, host.switch]
-                        # outPort, p = topo.ports["spine%s" % tenant, hostB.switch]
-                        # flow = {
-                        #     'in_port' : inPort,
-                        #     'eth_src' : topo.hosts[hostName].mac,
-                        #     'eth_dst' : topo.hosts[connectHost].mac,
-                        #     'output'  : outPort
-                        # }
-                        # print flow
-                        # topo.spineSwitches["spine%s" % tenant].addFlow(flow)
-                        # #Reverse
-                        # flow = {
-                        #     'in_port' : outPort,
-                        #     'eth_src' : topo.hosts[connectHost].mac,
-                        #     'eth_dst' : topo.hosts[hostName].mac,
-                        #     'output'  : inPort 
-                        # }
-                        # print flow
-                        # topo.spineSwitches["spine%s" % tenant].addFlow(flow)                        
+                        # Tenant Spine -> Destination Leaf Switch
+                        inPort, p = topo.ports[host.switch, 'spine%s' % tenant]
+                        outPort, p = topo.ports['spine%s' % tenant, hostB.switch]
+                        flow = {
+                            'in_port' : inPort,
+                            'eth_src' : topo.hosts[hostName].mac,
+                            'eth_dst' : topo.hosts[connectHost].mac,
+                            'output'  : outPort
+                        }
+                        topo.spineSwitches['spine%s' % tenant].addFlow(flow)
+                        flow = {
+                            'in_port' : outPort,
+                            'eth_src' : topo.hosts[connectHost].mac,
+                            'eth_dst' : topo.hosts[hostName].mac,
+                            'output'  : inPort
+                        }
+                        topo.spineSwitches['spine%s' % tenant].addFlow(flow)
 
-                        # # Leaf to Dest Host
-                        # inPort, p = topo.ports["spine%s" % tenant, hostB.switch]
-                        # outPort, p = topo.ports[hostB.switch, connectHost]
-                        # flow = {
-                        #     'in_port' : inPort,
-                        #     'eth_src' : topo.hosts[hostName].mac,
-                        #     'eth_dst' : topo.hosts[connectHost].mac,
-                        #     'output'  : outPort
-                        # }
-                        # print flow
-                        # topo.leafSwitches[hostB.switch].addFlow(flow)
-                        # #Reverse 
-                        # flow = {
-                        #     'in_port' : outPort,
-                        #     'eth_src' : topo.hosts[connectHost].mac,
-                        #     'eth_dst' : topo.hosts[hostName].mac,
-                        #     'output'  : inPort
-                        # }
-                        # print flow
-                        # topo.leafSwitches[hostB.switch].addFlow(flow)
+                        # Destination Leaf Switch -> Host 
+                        inPort, p = topo.ports['spine%s' % tenant, hostB.switch]
+                        outPort, p = topo.ports[hostB.switch, connectHost]
+                        flow = {
+                            'in_port' : inPort,
+                            'eth_src' : topo.hosts[hostName].mac,
+                            'eth_dst' : topo.hosts[connectHost].mac,
+                            'output'  : outPort
+                        }
+                        topo.leafSwitches[hostB.switch].addFlow(flow)
+                        flow = {
+                            'in_port' : outPort,
+                            'eth_src' : topo.hosts[connectHost].mac,
+                            'eth_dst' : topo.hosts[hostName].mac,
+                            'output'  : inPort
+                        }
+                        topo.leafSwitches[hostB.switch].addFlow(flow)
