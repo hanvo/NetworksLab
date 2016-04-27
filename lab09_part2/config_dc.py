@@ -92,6 +92,7 @@ class   ConfigDC(app_manager.RyuApp):
                             'eth_dst' : topo.hosts[connectHost].mac,
                             'output'  : outPort
                         }
+                        print flow
                         topo.leafSwitches[host.switch].addFlow(flow)
                         flow = {
                             'in_port' : outPort,
@@ -102,7 +103,7 @@ class   ConfigDC(app_manager.RyuApp):
                         topo.leafSwitches[host.switch].addFlow(flow)
                     else:
                         # Host Leaf Switch -> Tenant Spine
-                        inPort, p = topo.ports[hostName, host.switch]
+                        inPort, p = topo.ports[host.switch, hostName]
                         outPort, p = topo.ports[host.switch, 'spine%s' % tenant]
                         flow = {
                             'in_port' : inPort,
@@ -110,6 +111,7 @@ class   ConfigDC(app_manager.RyuApp):
                             'eth_dst' : topo.hosts[connectHost].mac,
                             'output'  : outPort
                         }
+                        print flow
                         topo.leafSwitches[host.switch].addFlow(flow)
                         flow = {
                             'in_port' : outPort,
@@ -120,7 +122,7 @@ class   ConfigDC(app_manager.RyuApp):
                         topo.leafSwitches[host.switch].addFlow(flow)
 
                         # Tenant Spine -> Destination Leaf Switch
-                        inPort, p = topo.ports[host.switch, 'spine%s' % tenant]
+                        inPort, p = topo.ports['spine%s' % tenant, host.switch]
                         outPort, p = topo.ports['spine%s' % tenant, hostB.switch]
                         flow = {
                             'in_port' : inPort,
@@ -128,6 +130,7 @@ class   ConfigDC(app_manager.RyuApp):
                             'eth_dst' : topo.hosts[connectHost].mac,
                             'output'  : outPort
                         }
+                        print flow
                         topo.spineSwitches['spine%s' % tenant].addFlow(flow)
                         flow = {
                             'in_port' : outPort,
@@ -138,7 +141,7 @@ class   ConfigDC(app_manager.RyuApp):
                         topo.spineSwitches['spine%s' % tenant].addFlow(flow)
 
                         # Destination Leaf Switch -> Host 
-                        inPort, p = topo.ports['spine%s' % tenant, hostB.switch]
+                        inPort, p = topo.ports[hostB.switch, 'spine%s' % tenant]
                         outPort, p = topo.ports[hostB.switch, connectHost]
                         flow = {
                             'in_port' : inPort,
@@ -146,6 +149,7 @@ class   ConfigDC(app_manager.RyuApp):
                             'eth_dst' : topo.hosts[connectHost].mac,
                             'output'  : outPort
                         }
+                        print flow
                         topo.leafSwitches[hostB.switch].addFlow(flow)
                         flow = {
                             'in_port' : outPort,
